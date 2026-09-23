@@ -105,50 +105,7 @@ class HybridRouter:
             }
 
         # -------------------------------------------------------------
-        # NIVEL 3: CONVERSACION COTIDIANA DETERMINISTA (NOVA CORE)
-        # -------------------------------------------------------------
-        cleaned_prompt = lower_text.strip("?.!¡¿ ")
-        presence_triggers = [
-            "me escuchas", "me oyes", "estas ahi", "estás ahí", "puedes oirme", "puedes oírme",
-            "estas conectado", "estás conectado", "me lees", "estas disponible", "estás disponible"
-        ]
-        if cleaned_prompt in presence_triggers:
-            return {
-                "layer": "Nova Core (Determinista)",
-                "action": "presence_check",
-                "resolved": True,
-                "response": "Te escucho fuerte y claro. Estoy 100% activa y lista para lo que necesites."
-            }
-
-        greetings = {
-            "hola": "¡Hola! ¿Cómo estás? Soy Nova AI, lista para ayudarte.",
-            "buenas": "¡Buenas! ¿Todo bien? ¿En qué te puedo dar una mano hoy?",
-            "como va": "¡Todo excelente por acá! ¿Y vos cómo andás? ¿Qué proyecto o consulta tenemos hoy?",
-            "cómo va": "¡Todo excelente por acá! ¿Y vos cómo andás? ¿Qué proyecto o consulta tenemos hoy?",
-            "que tal": "¡Qué tal! Un gusto saludarte. ¿Qué estamos preparando?",
-            "qué tal": "¡Qué tal! Un gusto saludarte. ¿Qué estamos preparando?",
-            "buenos días": "¡Buenos días! ¿En qué podemos avanzar hoy?",
-            "buenos dias": "¡Buenos días! ¿En qué podemos avanzar hoy?",
-            "buenas tardes": "¡Buenas tardes! ¿Qué proyecto o consulta técnica tienes?",
-            "buenas noches": "¡Buenas noches! ¿En qué te puedo colaborar?",
-            "cómo estás": "Excelente, con todos mis módulos y expertos listos para operar.",
-            "como estas": "Excelente, con todos mis módulos y expertos listos para operar.",
-            "quién eres": "Soy Nova 2B (Nova AI), una inteligencia artificial híbrida ultracompacta desarrollada por ModernoTech.",
-            "quien eres": "Soy Nova 2B (Nova AI), una inteligencia artificial híbrida ultracompacta desarrollada por ModernoTech.",
-            "quien te creo": "Fui concebida y desarrollada por ModernoTech / José Luis Brea.",
-            "quién te creó": "Fui concebida y desarrollada por ModernoTech / José Luis Brea."
-        }
-        for g_trigger, g_reply in greetings.items():
-            if cleaned_prompt == g_trigger:
-                return {
-                    "layer": "Nova Core (Determinista)",
-                    "action": "greeting",
-                    "resolved": True,
-                    "response": g_reply
-                }
-
-        # -------------------------------------------------------------
-        # NIVEL 4: CONSULTA DE MEMORIA DE USUARIO
+        # NIVEL 3: CONSULTA DE MEMORIA DE USUARIO (DATOS PERSONALES)
         # -------------------------------------------------------------
         # Ejemplo: "¿Cómo se llama mi perro?", "¿Dónde vivo?", "¿Cuál es mi perro?"
         mem_query_match = re.search(r'(?:cómo se llama mi|como se llama mi|cuál es mi|cual es mi|quién es mi|quien es mi)\s+([a-zA-ZáéíóúÁÉÍÓÚñÑ_]+)', text, re.IGNORECASE)
@@ -223,7 +180,7 @@ class HybridRouter:
                 }
 
         # -------------------------------------------------------------
-        # NIVEL 7: DELEGACION AL LLM ENGINE (Nativo Nova Engine / Grounding)
+        # NIVEL 6: DELEGACIÓN DIRECTA AL MOTOR LLM (Inferencia Nativa de Nova 2B)
         # -------------------------------------------------------------
         llm_response = self._invoke_llm(user_input)
         if llm_response:
@@ -234,11 +191,12 @@ class HybridRouter:
                 "response": llm_response
             }
 
+        # En caso de fallo excepcional en la comunicación con el motor de inferencia:
         return {
-            "layer": "Nova Core",
+            "layer": "Nova Engine",
             "action": "direct_answer",
             "resolved": True,
-            "response": "Te he escuchado atentamente. ¿En qué puedo ayudarte o qué problema técnico estamos resolviendo?"
+            "response": "Acá estoy, che. Tuve un micro-parpadeo de conexión con mi motor de inferencia, ¿me repetís?"
         }
 
     def _invoke_llm(self, prompt: str) -> Optional[str]:
