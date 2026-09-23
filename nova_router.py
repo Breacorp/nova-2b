@@ -32,7 +32,7 @@ class HybridRouter:
         self.lang_expert = lang_expert
         self.math_expert = math_expert
 
-    def route(self, user_input: str) -> Dict[str, Any]:
+    def route(self, user_input: str, fast_mode: bool = False) -> Dict[str, Any]:
         text = user_input.strip()
         lower_text = text.lower()
 
@@ -182,7 +182,7 @@ class HybridRouter:
         # -------------------------------------------------------------
         # NIVEL 6: DELEGACIÓN DIRECTA AL MOTOR LLM (Inferencia Nativa de Nova 2B)
         # -------------------------------------------------------------
-        llm_response = self._invoke_llm(user_input)
+        llm_response = self._invoke_llm(user_input, fast_mode=fast_mode)
         if llm_response:
             return {
                 "layer": "Nova 2B (Native LLM Engine)",
@@ -199,7 +199,7 @@ class HybridRouter:
             "response": "Acá estoy, che. Tuve un micro-parpadeo de conexión con mi motor de inferencia, ¿me repetís?"
         }
 
-    def _invoke_llm(self, prompt: str) -> Optional[str]:
+    def _invoke_llm(self, prompt: str, fast_mode: bool = False) -> Optional[str]:
         """
         Invoca el backend LLM de Nova 2B con soporte de búsqueda en tiempo real si la pregunta es factual.
         """
@@ -207,10 +207,10 @@ class HybridRouter:
         import json
         import urllib.request
 
-        # Si el usuario pregunta por hechos actuales, productos recientes o pide buscar información:
+        # Si el usuario pregunta por hechos actuales, productos recientes o pide buscar información (omitir búsqueda pesada si es charla rápida de voz):
         grounded_context = None
         factual_keywords = ["nuevo", "nueva", "ultimo", "último", "lanzamiento", "precio", "colores", "iphone", "apple", "noticias", "busca", "informacion real", "información real"]
-        if any(k in prompt.lower() for k in factual_keywords):
+        if not fast_mode and any(k in prompt.lower() for k in factual_keywords):
             try:
                 from nova_web_search import NovaWebSearch
                 if not hasattr(self, "_web_search"):
@@ -224,7 +224,7 @@ class HybridRouter:
             from nova_engine import NovaEngineManager
             if not hasattr(self, "_native_engine"):
                 self._native_engine = NovaEngineManager(port=18888)
-            native_reply = self._native_engine.generate(prompt, grounded_context=grounded_context)
+            native_reply = self._native_engine.generate(prompt, grounded_context=grounded_context, fast_mode=fast_mode)
             if native_reply:
                 cleaned = re.sub(r'<commentary>.*?</commentary>', '', native_reply, flags=re.DOTALL)
                 cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)

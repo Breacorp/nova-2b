@@ -957,7 +957,10 @@
           const res = await fetch("/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: session.messages })
+            body: JSON.stringify({
+              messages: session.messages,
+              fast_mode: true
+            })
           });
           const data = await res.json();
           const reply = data.choices[0].message.content;

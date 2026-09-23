@@ -60,7 +60,8 @@ class NovaAPIHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(body)
                 messages = data.get("messages", [])
-                response = RUNTIME.chat_completion_api(messages)
+                fast_mode = bool(data.get("fast_mode", False))
+                response = RUNTIME.chat_completion_api(messages, fast_mode=fast_mode)
                 self._set_headers(200)
                 self.wfile.write(json.dumps(response, ensure_ascii=False).encode())
             except Exception as e:

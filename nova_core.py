@@ -83,9 +83,9 @@ class NovaCore:
         )
 
 
-    def ask(self, user_prompt: str) -> Dict[str, Any]:
+    def ask(self, user_prompt: str, fast_mode: bool = False) -> Dict[str, Any]:
         """Procesa una consulta a través del Router Híbrido jerárquico."""
-        return self.router.route(user_prompt)
+        return self.router.route(user_prompt, fast_mode=fast_mode)
 
     def ingest(self, file_path: str, domain_hint: str = None) -> List[Dict[str, Any]]:
         """Ingiere un manual, documento o archivo de código en el sistema."""

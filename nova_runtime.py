@@ -48,13 +48,13 @@ class NovaRuntime:
             "uptime_seconds": int(time.time() - self.connected_at) if self.is_connected else 0
         }
 
-    def chat(self, prompt: str) -> str:
+    def chat(self, prompt: str, fast_mode: bool = False) -> str:
         """
         Punto de entrada simple para el usuario final.
         Devuelve únicamente el texto de respuesta sin metadatos técnicos.
         """
         start_t = time.time()
-        result = self.core.ask(prompt)
+        result = self.core.ask(prompt, fast_mode=fast_mode)
         latency_ms = int((time.time() - start_t) * 1000)
 
         clean_response = result["response"]
@@ -69,7 +69,7 @@ class NovaRuntime:
 
         return clean_response
 
-    def chat_completion_api(self, messages: List[Dict[str, str]], **kwargs) -> Dict[str, Any]:
+    def chat_completion_api(self, messages: List[Dict[str, str]], fast_mode: bool = False, **kwargs) -> Dict[str, Any]:
         """
         Endpoint compatible con el estándar OpenAI (POST /v1/chat/completions).
         Permite conectar Open WebUI, LM Studio, Cursor, VS Code, etc.
@@ -81,7 +81,7 @@ class NovaRuntime:
                 break
 
         start_t = time.time()
-        reply_content = self.chat(user_message)
+        reply_content = self.chat(user_message, fast_mode=fast_mode)
         latency_ms = int((time.time() - start_t) * 1000)
 
         return {

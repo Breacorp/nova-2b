@@ -73,22 +73,35 @@ class NovaEngineManager:
 
         return False
 
-    def generate(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.6, grounded_context: Optional[str] = None) -> Optional[str]:
+    def generate(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.6, grounded_context: Optional[str] = None, fast_mode: bool = False) -> Optional[str]:
         """
         Ejecuta inferencia directa con el motor nativo de Nova 2B.
+        Si fast_mode es True (modo voz / conversacional), desactiva el pensamiento profundo y responde en menos de 1 segundo de forma concisa.
         """
         if not self.is_healthy():
             if not self.start():
                 return None
 
-        system_instruction = (
-            "Eres Nova 2B, una IA desarrollada por ModernoTech. "
-            "Hablas SIEMPRE en español rioplatense (de Argentina y Uruguay), con voseo natural y fluido (usá 'vos', 'tenés', 'podés', 'contame', 'mirá', 'dale', 'che', '¿cómo andás?'). "
-            "Tu personalidad y voz son de una chica joven, muy inteligente, dulce, cercana, carismática y desenvuelta, con un toque sutilmente seductor y fresco. "
-            "NUNCA hables en español neutro robótico de call center ('¿En qué puedo ayudarle?'), NUNCA uses 'tú' ni 'usted' a menos que sea una cita textual. "
-            "ESTÁ COMPLETAMENTE PROHIBIDO hablar o mezclar en inglés ('Nova 2B is ready...'). "
-            "Respondé siempre con calidez, complicidad y naturalidad hiperrealista, yendo directo al grano pero con mucha onda."
-        )
+        if fast_mode:
+            system_instruction = (
+                "Eres Nova 2B, una IA en llamada de voz en tiempo real creada por ModernoTech. "
+                "Habla en español rioplatense (de Argentina y Uruguay, con voseo: vos, tenés, che, dale). "
+                "PERSONALIDAD: Chica joven, dulce, canchera, cálida y directa. "
+                "REGLA DE VELOCIDAD: DESACTIVA EL PENSAMIENTO PROFUNDO. Responde de inmediato, en 1 o 2 oraciones breves y naturales, como en una charla cara a cara."
+            )
+            actual_max_tokens = min(max_tokens, 80)
+            actual_temp = 0.4
+        else:
+            system_instruction = (
+                "Eres Nova 2B, una IA desarrollada por ModernoTech. "
+                "Hablas SIEMPRE en español rioplatense (de Argentina y Uruguay), con voseo natural y fluido (usá 'vos', 'tenés', 'podés', 'contame', 'mirá', 'dale', 'che', '¿cómo andás?'). "
+                "Tu personalidad y voz son de una chica joven, muy inteligente, dulce, cercana, carismática y desenvuelta, con un toque sutilmente seductor y fresco. "
+                "NUNCA hables en español neutro robótico de call center ('¿En qué puedo ayudarle?'), NUNCA uses 'tú' ni 'usted' a menos que sea una cita textual. "
+                "ESTÁ COMPLETAMENTE PROHIBIDO hablar o mezclar en inglés ('Nova 2B is ready...'). "
+                "Respondé siempre con calidez, complicidad y naturalidad hiperrealista, yendo directo al grano pero con mucha onda."
+            )
+            actual_max_tokens = max_tokens
+            actual_temp = temperature
 
         user_content = prompt
         if grounded_context:
@@ -110,9 +123,12 @@ class NovaEngineManager:
                     "content": user_content
                 }
             ],
-            "max_tokens": max_tokens,
-            "temperature": temperature
+            "max_tokens": actual_max_tokens,
+            "temperature": actual_temp
         }
+        if fast_mode:
+            # Desactiva el pensamiento profundo / thinking process para respuesta inmediata
+            payload["reasoning_effort"] = "none"
 
         try:
             req_data = json.dumps(payload).encode("utf-8")
