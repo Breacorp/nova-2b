@@ -92,18 +92,34 @@ class HybridRouter:
         # -------------------------------------------------------------
         # NIVEL 3: CONVERSACION COTIDIANA DETERMINISTA (NOVA CORE)
         # -------------------------------------------------------------
+        cleaned_prompt = lower_text.strip("?.!¡¿ ")
+        presence_triggers = [
+            "me escuchas", "me oyes", "estas ahi", "estás ahí", "puedes oirme", "puedes oírme",
+            "estas conectado", "estás conectado", "me lees", "estas disponible", "estás disponible"
+        ]
+        if cleaned_prompt in presence_triggers:
+            return {
+                "layer": "Nova Core (Determinista)",
+                "action": "presence_check",
+                "resolved": True,
+                "response": "Te escucho fuerte y claro. Estoy 100% activa y lista para lo que necesites."
+            }
+
         greetings = {
             "hola": "¡Hola! ¿Cómo estás? Soy Nova AI, lista para ayudarte.",
             "buenos días": "¡Buenos días! ¿En qué podemos avanzar hoy?",
+            "buenos dias": "¡Buenos días! ¿En qué podemos avanzar hoy?",
             "buenas tardes": "¡Buenas tardes! ¿Qué proyecto o consulta técnica tienes?",
             "buenas noches": "¡Buenas noches! ¿En qué te puedo colaborar?",
             "cómo estás": "Excelente, con todos mis módulos y expertos listos para operar.",
+            "como estas": "Excelente, con todos mis módulos y expertos listos para operar.",
             "quién eres": "Soy Nova 2B (Nova AI), una inteligencia artificial híbrida ultracompacta desarrollada por ModernoTech.",
+            "quien eres": "Soy Nova 2B (Nova AI), una inteligencia artificial híbrida ultracompacta desarrollada por ModernoTech.",
             "quien te creo": "Fui concebida y desarrollada por ModernoTech / José Luis Brea.",
             "quién te creó": "Fui concebida y desarrollada por ModernoTech / José Luis Brea."
         }
         for g_trigger, g_reply in greetings.items():
-            if lower_text == g_trigger or lower_text == f"{g_trigger}!" or lower_text == f"{g_trigger}.":
+            if cleaned_prompt == g_trigger:
                 return {
                     "layer": "Nova Core (Determinista)",
                     "action": "greeting",
@@ -184,14 +200,77 @@ class HybridRouter:
             }
 
         # -------------------------------------------------------------
-        # NIVEL 7: DELEGACION AL LLM ENGINE (Razonamiento / Fallback)
+        # NIVEL 7: DELEGACION AL LLM ENGINE (Razonamiento / Ollama / Fallback)
         # -------------------------------------------------------------
+        llm_response = self._invoke_llm(user_input)
+        if llm_response:
+            return {
+                "layer": "Nova 2B (LLM Engine)",
+                "action": "llm_generation",
+                "resolved": True,
+                "response": llm_response
+            }
+
         return {
-            "layer": "Nova 2B (LLM Backend)",
-            "action": "forward_to_llm",
-            "resolved": False,
-            "response": (
-                "🤖 Consulta no resuelta en capas locales directas (Core, Memory, MoCE, RAG). "
-                "Requiere derivación al LLM Nova 2B como motor de razonamiento y profesor."
-            )
+            "layer": "Nova Core",
+            "action": "direct_answer",
+            "resolved": True,
+            "response": "Te he escuchado atentamente. ¿En qué puedo ayudarte o qué problema técnico estamos resolviendo?"
         }
+
+    def _invoke_llm(self, prompt: str) -> Optional[str]:
+        """
+        Invoca el backend LLM de Nova 2B (vía Ollama local o fallback limpio).
+        Limpia cualquier etiqueta parásita (<commentary>, <think>, etc.)
+        y asimila automáticamente la respuesta en RAG.
+        """
+        import urllib.request
+        import json
+
+        model_candidates = ["modernotech/Nova-2b:latest", "hf.co/modernotech/Nova-2b:latest"]
+        for model_name in model_candidates:
+            try:
+                req_data = json.dumps({
+                    "model": model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.7,
+                        "num_ctx": 4096
+                    }
+                }).encode("utf-8")
+
+                req = urllib.request.Request(
+                    "http://127.0.0.1:11434/api/generate",
+                    data=req_data,
+                    headers={"Content-Type": "application/json"}
+                )
+
+                with urllib.request.urlopen(req, timeout=12) as response:
+                    if response.status == 200:
+                        res_json = json.loads(response.read().decode("utf-8"))
+                        raw_text = res_json.get("response", "").strip()
+
+                        # Limpieza estricta de comentarios o pensamientos internos
+                        cleaned = re.sub(r'<commentary>.*?</commentary>', '', raw_text, flags=re.DOTALL)
+                        cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
+                        cleaned = re.sub(r'<thought>.*?</thought>', '', cleaned, flags=re.DOTALL).strip()
+
+                        if cleaned:
+                            # Auto-asimilación en RAG para aprendizaje continuo
+                            try:
+                                topic = prompt[:50]
+                                self.rag.add_document(
+                                    title=f"Q&A: {topic}",
+                                    content=f"Pregunta: {prompt}\nRespuesta: {cleaned}",
+                                    source="nova_llm_inference",
+                                    category="conversation"
+                                )
+                            except Exception:
+                                pass
+
+                            return cleaned
+            except Exception:
+                continue
+
+        return None
