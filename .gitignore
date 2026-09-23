@@ -4,3 +4,9 @@
 # OS specific files
 .DS_Store
 
+# Logs & engine binaries
+*.log
+storage/*.log
+bin/
+
+

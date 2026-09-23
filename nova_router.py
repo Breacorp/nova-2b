@@ -188,25 +188,29 @@ class HybridRouter:
         rag_hits = self.rag.search(text, limit=2)
         if rag_hits:
             best_hit = rag_hits[0]
-            # Si el documento tiene información relevante directa
-            return {
-                "layer": "Nova RAG (FTS5)",
-                "action": "rag_grounded_response",
-                "resolved": True,
-                "response": (
-                    f"📄 [RAG FTS5 / Fuente: {best_hit['source']} | {best_hit['title']}]:\n\n"
-                    f"{best_hit['content']}"
-                )
-            }
+            # Solo interceptar si hay una coincidencia temática real con la consulta
+            tokens = [t for t in lower_text.split() if len(t) > 3]
+            hit_text = (best_hit['title'] + " " + best_hit['content']).lower()
+            matching_tokens = [t for t in tokens if t in hit_text]
+            if len(matching_tokens) >= 2 or (len(tokens) == 1 and len(matching_tokens) == 1):
+                clean_rag_content = best_hit['content']
+                if "Respuesta:" in clean_rag_content:
+                    clean_rag_content = clean_rag_content.split("Respuesta:", 1)[1].strip()
+                return {
+                    "layer": "Nova RAG (FTS5)",
+                    "action": "rag_grounded_response",
+                    "resolved": True,
+                    "response": clean_rag_content
+                }
 
         # -------------------------------------------------------------
-        # NIVEL 7: DELEGACION AL LLM ENGINE (Razonamiento / Ollama / Fallback)
+        # NIVEL 7: DELEGACION AL LLM ENGINE (Nativo Nova Engine / Fallback)
         # -------------------------------------------------------------
         llm_response = self._invoke_llm(user_input)
         if llm_response:
             return {
-                "layer": "Nova 2B (LLM Engine)",
-                "action": "llm_generation",
+                "layer": "Nova 2B (Native LLM Engine)",
+                "action": "native_llm_generation",
                 "resolved": True,
                 "response": llm_response
             }
@@ -220,13 +224,33 @@ class HybridRouter:
 
     def _invoke_llm(self, prompt: str) -> Optional[str]:
         """
-        Invoca el backend LLM de Nova 2B (vía Ollama local o fallback limpio).
+        Invoca el backend LLM de Nova 2B:
+        1. Prioridad: Motor Nativo Autónomo (bin/nova-engine con ./nova-2b.gguf).
+        2. Fallback: Ollama local si estuviera disponible.
         Limpia cualquier etiqueta parásita (<commentary>, <think>, etc.)
         y asimila automáticamente la respuesta en RAG.
         """
-        import urllib.request
+        import re
         import json
+        import urllib.request
 
+        # 1. Intentar con el Motor Nativo Propietario de Nova AI
+        try:
+            from nova_engine import NovaEngineManager
+            if not hasattr(self, "_native_engine"):
+                self._native_engine = NovaEngineManager(port=18888)
+            native_reply = self._native_engine.generate(prompt)
+            if native_reply:
+                cleaned = re.sub(r'<commentary>.*?</commentary>', '', native_reply, flags=re.DOTALL)
+                cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
+                cleaned = re.sub(r'<thought>.*?</thought>', '', cleaned, flags=re.DOTALL).strip()
+                if cleaned:
+                    self._assimilate_qa(prompt, cleaned, source="nova_native_engine")
+                    return cleaned
+        except Exception:
+            pass
+
+        # 2. Fallback secundario a Ollama si existe
         model_candidates = ["modernotech/Nova-2b:latest", "hf.co/modernotech/Nova-2b:latest"]
         for model_name in model_candidates:
             try:
@@ -251,26 +275,27 @@ class HybridRouter:
                         res_json = json.loads(response.read().decode("utf-8"))
                         raw_text = res_json.get("response", "").strip()
 
-                        # Limpieza estricta de comentarios o pensamientos internos
                         cleaned = re.sub(r'<commentary>.*?</commentary>', '', raw_text, flags=re.DOTALL)
                         cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
                         cleaned = re.sub(r'<thought>.*?</thought>', '', cleaned, flags=re.DOTALL).strip()
 
                         if cleaned:
-                            # Auto-asimilación en RAG para aprendizaje continuo
-                            try:
-                                topic = prompt[:50]
-                                self.rag.add_document(
-                                    title=f"Q&A: {topic}",
-                                    content=f"Pregunta: {prompt}\nRespuesta: {cleaned}",
-                                    source="nova_llm_inference",
-                                    category="conversation"
-                                )
-                            except Exception:
-                                pass
-
+                            self._assimilate_qa(prompt, cleaned, source="nova_ollama_fallback")
                             return cleaned
             except Exception:
                 continue
 
         return None
+
+    def _assimilate_qa(self, prompt: str, reply: str, source: str = "nova_engine"):
+        """Asimila interacciones en la memoria RAG SQLite FTS5."""
+        try:
+            topic = prompt[:50]
+            self.rag.add_document(
+                title=f"Q&A: {topic}",
+                content=f"Pregunta: {prompt}\nRespuesta: {reply}",
+                source=source,
+                category="conversation"
+            )
+        except Exception:
+            pass
