@@ -291,22 +291,8 @@ class HybridRouter:
                         cleaned = re.sub(r'<thought>.*?</thought>', '', cleaned, flags=re.DOTALL).strip()
 
                         if cleaned:
-                            self._assimilate_qa(prompt, cleaned, source="nova_ollama_fallback")
                             return cleaned
             except Exception:
                 continue
 
         return None
-
-    def _assimilate_qa(self, prompt: str, reply: str, source: str = "nova_engine"):
-        """Asimila interacciones en la memoria RAG SQLite FTS5."""
-        try:
-            topic = prompt[:50]
-            self.rag.add_document(
-                title=f"Q&A: {topic}",
-                content=f"Pregunta: {prompt}\nRespuesta: {reply}",
-                source=source,
-                category="conversation"
-            )
-        except Exception:
-            pass
