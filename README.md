@@ -8,14 +8,17 @@ language:
 - pt
 pipeline_tag: text-generation
 tags:
-- nova
+- nova-2b
 - modernotech
-- gguf
+- nova-ai
+- custom-architecture
 - conversational
 - uncensored
 - 1m-context
-base_model: ModernoTech/nova-2b
+model_name: Nova 2B (Nova AI)
+model_creator: ModernoTech
 ---
+
 
 # Nova AI — Arquitectura Híbrida Oficial (ModernoTech)
 
