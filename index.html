@@ -865,38 +865,42 @@
       rec.lang = "es-ES";
 
       rec.onresult = async (event) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          const userSpeech = lastResult[0].transcript.trim();
-          if (userSpeech) {
-            document.getElementById("voice-caption").innerText = `"${userSpeech}"`;
-            document.getElementById("voice-status").innerText = "Procesando...";
-            setOrbState("speaking");
+        let userSpeech = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            userSpeech += event.results[i][0].transcript;
+          }
+        }
+        userSpeech = userSpeech.trim();
+        if (userSpeech) {
+          // Pausar reconocimiento mientras procesa y habla para evitar que se escuche a sí misma
+          try { rec.abort(); } catch (e) {}
+
+          document.getElementById("voice-caption").innerText = `"${userSpeech}"`;
+          document.getElementById("voice-status").innerText = "Pensando...";
+          setOrbState("speaking");
+          
+          const session = getActiveSession();
+          session.messages.push({ role: "user", content: userSpeech });
+          saveSessions();
+          appendMessageUI("user", userSpeech);
+
+          try {
+            const res = await fetch("/v1/chat/completions", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: session.messages })
+            });
+            const data = await res.json();
+            const reply = data.choices[0].message.content;
             
-            // Enviar mensaje al backend
-            const session = getActiveSession();
-            session.messages.push({ role: "user", content: userSpeech });
+            session.messages.push({ role: "assistant", content: reply });
             saveSessions();
-            appendMessageUI("user", userSpeech);
+            appendMessageUI("assistant", reply);
 
-            try {
-              const res = await fetch("/v1/chat/completions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: session.messages })
-              });
-              const data = await res.json();
-              const reply = data.choices[0].message.content;
-              
-              session.messages.push({ role: "assistant", content: reply });
-              saveSessions();
-              appendMessageUI("assistant", reply);
-
-              // Hablar respuesta de Nova
-              speakResponse(reply);
-            } catch (e) {
-              speakResponse("Ocurrió un error al procesar la respuesta.");
-            }
+            speakResponse(reply);
+          } catch (e) {
+            speakResponse("Disculpa, hubo un problema al procesar tu mensaje.");
           }
         }
       };
@@ -904,6 +908,13 @@
       rec.onerror = (e) => {
         if (isVoiceActive) {
           setOrbState("listening");
+        }
+      };
+
+      rec.onend = () => {
+        // Si la voz sigue activa y no está hablando el sintetizador, reiniciar escucha
+        if (isVoiceActive && (!synth || !synth.speaking)) {
+          try { rec.start(); } catch (e) {}
         }
       };
 
@@ -926,7 +937,7 @@
 
       isVoiceActive = true;
       document.getElementById("voice-modal").classList.add("active");
-      document.getElementById("voice-caption").innerText = "Habla naturalmente, Nova te responderá en voz alta...";
+      document.getElementById("voice-caption").innerText = "Habla con naturalidad en español...";
       setOrbState("listening");
       try { recognition.start(); } catch (e) {}
     }
@@ -936,7 +947,7 @@
       document.getElementById("voice-modal").classList.remove("active");
       if (synth) synth.cancel();
       if (recognition) {
-        try { recognition.stop(); } catch (e) {}
+        try { recognition.abort(); } catch (e) {}
       }
     }
 
@@ -944,21 +955,24 @@
       if (!synth) return;
       synth.cancel();
 
-      // Limpiar markdown o etiquetas para voz más fluida
-      const cleanText = text.replace(/[*#_`]/g, "");
+      // Limpiar formato markdown, emojis o caracteres extraños para lectura fluida
+      const cleanText = text.replace(/[*#_`]/g, "").replace(/\(.*?\)/g, "").trim();
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = "es-ES";
-      utterance.rate = 1.05;
+      utterance.rate = 1.0;
 
       utterance.onstart = () => {
         setOrbState("speaking");
-        document.getElementById("voice-caption").innerText = text.slice(0, 100) + "...";
+        document.getElementById("voice-caption").innerText = cleanText.slice(0, 120) + (cleanText.length > 120 ? "..." : "");
       };
 
       utterance.onend = () => {
         if (isVoiceActive) {
           setOrbState("listening");
-          document.getElementById("voice-caption").innerText = "Escuchando tu respuesta...";
+          document.getElementById("voice-caption").innerText = "Te escucho...";
+          if (recognition) {
+            try { recognition.start(); } catch (e) {}
+          }
         }
       };
 

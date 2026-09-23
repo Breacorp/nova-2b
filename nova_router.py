@@ -245,7 +245,6 @@ class HybridRouter:
                 cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
                 cleaned = re.sub(r'<thought>.*?</thought>', '', cleaned, flags=re.DOTALL).strip()
                 if cleaned:
-                    self._assimilate_qa(prompt, cleaned, source="nova_native_engine")
                     return cleaned
         except Exception:
             pass

@@ -73,7 +73,7 @@ class NovaEngineManager:
 
         return False
 
-    def generate(self, prompt: str, max_tokens: int = 512, temperature: float = 0.7) -> Optional[str]:
+    def generate(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.6) -> Optional[str]:
         """
         Ejecuta inferencia directa con el motor nativo de Nova 2B.
         """
@@ -86,7 +86,12 @@ class NovaEngineManager:
             "messages": [
                 {
                     "role": "system",
-                    "content": "Eres Nova 2B, la inteligencia artificial avanzada desarrollada por ModernoTech. Responde siempre de forma clara, directa, profesional y sin mostrar procesos internos de razonamiento ni comentarios en etiquetas."
+                    "content": (
+                        "Eres Nova 2B, una inteligencia artificial conversacional avanzada desarrollada por ModernoTech. "
+                        "Tu estilo es natural, directo, fluido y profesional en idioma español. "
+                        "Responde siempre directamente al usuario, sin escribir notas entre paréntesis como '*(This is the initial response)*', "
+                        "ni 'Thinking Process', ni comentarios explicativos sobre tu propio rol."
+                    )
                 },
                 {
                     "role": "user",
@@ -104,19 +109,22 @@ class NovaEngineManager:
                 data=req_data,
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=35) as resp:
                 if resp.status == 200:
                     data = json.loads(resp.read().decode())
                     choices = data.get("choices", [])
                     if choices:
                         msg = choices[0].get("message", {})
                         content = msg.get("content", "").strip()
-                        # Si el contenido está vacío pero hay reasoning, o viene con tags, limpiar
                         if not content:
                             reasoning = msg.get("reasoning_content", "")
-                            # Si solo devolvió razonamiento por max_tokens, usar el razonamiento limpio o mensaje directo
                             content = reasoning.replace("Thinking Process:", "").strip()
-                        return content
+                        
+                        # Limpieza de comentarios residuales en inglés o metanotas
+                        import re
+                        content = re.sub(r'\*\(.*?\)\*', '', content, flags=re.DOTALL)
+                        content = re.sub(r'<\|.*?\|>', '', content)
+                        return content.strip()
         except Exception as e:
             return None
 
