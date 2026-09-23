@@ -67,6 +67,21 @@ class NovaAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
+        elif self.path == "/v1/audio/speech":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            try:
+                data = json.loads(body)
+                text = data.get("input", "")
+                speed = float(data.get("speed", 1.05))
+                from nova_tts import NovaTTSService
+                tts = NovaTTSService.get_instance()
+                wav_bytes = tts.synthesize(text, voice_name="lola", speed=speed)
+                self._set_headers(200, content_type="audio/wav")
+                self.wfile.write(wav_bytes)
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
         elif self.path == "/v1/user-memory/clear":
             try:
                 deleted = RUNTIME.core.memory.clear_all()
