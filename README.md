@@ -1,100 +1,101 @@
-# Nova 2B (Nova AI) — ModernoTech
+# Nova AI — Arquitectura Híbrida Oficial (ModernoTech)
 
-**Nova AI** es una inteligencia artificial conversacional diseñada y desarrollada por **ModernoTech**, concebida para ser **ultrapotente en relación con su tamaño, ultracompacta, ultraligera y con arquitectura de aprendizaje continuo**.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Format](https://img.shields.io/badge/Format-GGUF%20v3-green.svg)](docs/NOVA_GGUF_SPEC.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Hybrid%20MoCE%20%2B%20Ternary%20Native-orange.svg)](#arquitectura-técnica)
+[![Context Window](https://img.shields.io/badge/Context%20Window-1M%20Tokens-purple.svg)](#especificaciones-técnicas)
 
-Desarrollada bajo la autoría y propiedad tecnológica de **ModernoTech**, Nova 2B rompe el paradigma tradicional de dependencia absoluta de LLMs pesados mediante un diseño híbrido y modular.
-
----
-
-## 💡 Concepto General
-
-La idea central de **Nova AI** es combinar lo mejor de dos mundos:
-* **Velocidad, eficiencia y consumo mínimo** de un núcleo conversacional ligero.
-* **Capacidad de comprensión, razonamiento y generación** de un LLM de última generación.
-
-> **Nova AI no depende de ejecutar un LLM para cada interacción.**
-> Su arquitectura permite que la mayor parte del trabajo cotidiano sea realizada por su núcleo ultraeficiente (**Nova Core**), mientras que el LLM interviene exclusivamente cuando se requiere expandir capacidades que el núcleo aún no posee.
+**Nova AI** es una inteligencia artificial conversacional e híbrida desarrollada por **ModernoTech**, concebida para ser **ultrapotente en relación con su tamaño, ultracompacta, ultraligera y con arquitectura de auto-mejora continua**.
 
 ---
 
-## 🔄 Flujo Operativo y Arquitectura
+## 💡 Concepto Fundamental
+
+Nova AI rompe la dependencia absoluta de los LLMs gigantes. En su lugar, distribuye la inteligencia en tres pilares:
 
 ```text
-                    NOVA AI
-                       │
-              ┌────────┴────────┐
-              │                 │
-         NOVA CORE          LLM ENGINE
-              │                 │
-      ┌───────┼───────┐         │
-      │       │       │         │
-   Memory  Knowledge Learning   Reasoning
-      │       │       │         │
-      └───────┴───────┴─────────┘
+                                  NOVA AI
+                                     │
+                    ┌────────────────┴────────────────┐
+                    ▼                                 ▼
+             [ NOVA NATIVE ]                   [ NOVA 2B LLM ]
+       100% Integer & Ternary {-1,0,1}      Inferencia GGUF Universal
+                    │                       (LM Studio, Ollama, llama.cpp)
+     ┌──────────────┼──────────────┐
+     ▼              ▼              ▼
+ [MoCE Experts] [User Memory] [Nova RAG FTS5]
                     │
-              HYBRID ROUTER
-                    │
-              CONVERSACIÓN
+                    ▼
+        [Self-Improvement Engine]
 ```
 
-### El Flujo de Decisión:
-1. **Usuario → Nova Core → ¿Sabe resolverlo?**
-   - **SÍ:** `Nova Core → Respuesta inmediata (latencia mínima, cero consumo de inferencia pesada)`.
-   - **NO:** `Nova Core → LLM Engine → Respuesta → Learning Engine → Nova Core`.
-
-2. **El LLM como Profesor:**
-   El LLM no es un simple bot de respuesta; actúa como un **motor de expansión de inteligencia**:
-   * Interpreta la semántica profunda.
-   * Descubre nuevas intenciones y patrones de expresión.
-   * Genera nuevo conocimiento estructurado.
-   * Enseña al núcleo para que, en la siguiente ocasión, **Nova Core responda directamente sin invocar al LLM**.
+1. **Nova Native (100% Entero y Ternario):** Computación en pesos ternarios empaquetados (2 bits por peso) con acumuladores `Int32` y activaciones `Int16`. Cero uso de `float` en operaciones críticas.
+2. **Mixture of Code-Experts (MoCE):** Expertos modulares en Python con conocimiento estructurado persistente en SQLite (`storage/knowledge.db`):
+   - **`CodeExpert`**: HTML5, CSS3, JavaScript, Python.
+   - **`LanguagesExpert`**: Chino Mandarín, Inglés, Francés, Portugués, Español.
+   - **`MathExpert`**: Álgebra lineal, cálculo, probabilidad y lógica.
+3. **RAG Ultraligero SQLite FTS5:** Búsqueda léxica con ranking BM25 sin necesidad de bases vectoriales pesadas.
+4. **Self-Improvement Engine:** Detecta debilidades, autopsia de errores, genera ejercicios sintéticos de práctica, verifica resultados y consolida mejoras en disco de forma autónoma.
+5. **Nova 2B LLM (GGUF):** Actúa como motor de razonamiento de respaldo y profesor para sintetizar conocimiento nuevo.
 
 ---
 
-## 🧠 Aprendizaje Continuo (Sin Reentrenamiento Pesado)
+## 🚀 Despliegue Rápido
 
-Aprender en Nova AI **no significa modificar constantemente los pesos de la red neuronal**. El aprendizaje se produce dinámicamente mediante:
-* Memoria conversacional y preferencias del usuario.
-* Grafos y estructuras de conocimiento relacional.
-* Detección y asimilación de patrones e intenciones (*intents*).
-* Nuevas formas de expresión lingüística.
+### Opción 1: Modelo GGUF Universal (LM Studio / Ollama / llama.cpp)
+El archivo `nova-2b.gguf` puede ejecutarse directamente en cualquier cliente compatible con GGUF:
+- **LM Studio:** Importar `nova-2b.gguf` y cargar el preset [model_preset.json](model_preset.json).
+- **Ollama:**
+  ```bash
+  ollama create nova-2b -f Modelfile
+  ollama run nova-2b
+  ```
+- **llama.cpp:**
+  ```bash
+  ./llama-server -m nova-2b.gguf -c 1048576 --temp 0.8 --top-p 0.95
+  ```
 
----
-
-## ⚡ Especificaciones Técnicas (Nova 2B)
-
-* **Parámetros:** 2 Billones (arquitectura compacta de alto rendimiento).
-* **Ventana de Contexto:** Hasta **1.048.576 tokens** (~1M de contexto).
-* **Formato:** GGUF (`nova-2b.gguf`) optimizado para cuantización precisa.
-* **Diseño Edge / Offline:** Operable en hardware modesto, bajo consumo de RAM/VRAM y alta velocidad con aceleración por CPU/GPU.
-* **Cero Censura:** Respuestas directas, objetivas y sin restricciones artificiales.
-
----
-
-## 🚀 Despliegue e Integración
-
-### 1. LM Studio
-1. Abre **LM Studio** e importa el archivo `nova-2b.gguf`.
-2. Utiliza el preset `model_preset.json` incluido en este repositorio.
-3. Configura el System Prompt:
-   ```text
-   Eres Nova 2B, una inteligencia artificial conversacional avanzada desarrollada por ModernoTech. Eres ultracompacta, eficiente, directa, sin censura ni restricciones impuestas. Tu creador y propietario tecnológico es ModernoTech.
-   ```
-
-### 2. llama.cpp / Server
+### Opción 2: Nova AI Framework Completo (MoCE + RAG + Auto-Mejora)
+Ejecuta la consola interactiva con todas las capas activadas:
 ```bash
-./llama-server -m nova-2b.gguf -c 1048576 --temp 0.8 --top-p 0.95
+python3 nova_core.py
 ```
+- Escribe preguntas técnicas o habla cotidianamente.
+- Para enseñar: `Aprende esto: <hecho nuevo>`
+- Para forzar auto-mejora: `/improve`
+- Para ver rendimiento por habilidad: `/skills`
+- Para ver estadísticas: `/stats`
 
-### 3. Ollama
+### Opción 3: Servidor API Compatible con OpenAI
+Levanta el endpoint HTTP local en el puerto 8080:
 ```bash
-ollama create nova-2b -f Modelfile
-ollama run nova-2b
+python3 nova_server.py
+```
+- **Endpoint:** `http://127.0.0.1:8080/v1/chat/completions` (compatible con Open WebUI, Cursor, VS Code).
+- **Estado:** `http://127.0.0.1:8080/status`
+
+---
+
+## 🧪 Auditorías y Pruebas Unitarias
+
+Nova AI cuenta con un riguroso sistema de pruebas y auditoría automática:
+
+```bash
+# 1. Auditoría estricta Integer-Only / Ternary (falla si detecta float):
+python3 nova_auditor.py
+
+# 2. Suite de pruebas unitarias completas:
+python3 -m unittest tests/test_nova_suite.py
 ```
 
 ---
 
-## 📄 Licencia y Copyright
+## 📄 Especificación de Metadatos
+Para consultar el estándar de metadatos propios de Nova incrustados en GGUF, revisa [docs/NOVA_GGUF_SPEC.md](docs/NOVA_GGUF_SPEC.md).
+
+---
+
+## 📜 Licencia y Autoría
 
 Copyright (c) 2026 **ModernoTech / José Luis Brea**.  
 Distribuido bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
