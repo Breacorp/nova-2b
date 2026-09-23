@@ -1,35 +1,40 @@
 """
-NOVA TTS SERVICE (Kokoro ONNX Engine + Voice Cloning)
-Provee síntesis de voz natural, hiperrealista y ultrarrápida (latencia < 0.15s).
-Soporta voces nativas y perfiles de voz clonados (Lola, etc.).
+NOVA TTS SERVICE (Motor F5-TTS con clonación cero-muestra idéntica)
+Utiliza directamente la muestra de audio de referencia voice-lola.mp3
+para sintetizar frases con el timbre, aire, respiración y prosodia EXACTOS.
 """
 
 import io
 import os
 import time
-import zipfile
-import numpy as np
+import threading
 import soundfile as sf
-from typing import Optional, Union
-from kokoro_onnx import Kokoro
+import torch
+from huggingface_hub import hf_hub_download
+from f5_tts.infer.utils_infer import load_model, load_vocoder, infer_process
+from f5_tts.model import DiT
 
-os.environ["ESPEAK_DATA_PATH"] = "/opt/homebrew/share/espeak-ng-data"
-os.environ["PHONEMIZER_ESPEAK_PATH"] = "/opt/homebrew/bin/espeak-ng"
+_tts_lock = threading.Lock()
 
-MODEL_PATH = "models/tts/kokoro-v1.0.onnx"
-VOICES_BIN = "models/tts/voices-v1.0.bin"
-CLONES_DIR = "storage/voice_clones"
+REF_AUDIO = "voices/voice-lola-reference.wav"
+REF_TEXT = "Nada, que anoche a las tres empieza a pitar el detector de humo, a las tres, y yo en pelotas, subido a una silla dándole al botoncito ese que no hace nada."
 
 class NovaTTSService:
     _instance = None
 
     def __init__(self):
-        if not os.path.exists(MODEL_PATH) or not os.path.exists(VOICES_BIN):
-            raise FileNotFoundError("Kokoro ONNX model files not found in models/tts/")
+        print("[TTS] Inicializando F5-TTS con pesos oficiales DiT...")
+        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
         
-        self.kokoro = Kokoro(MODEL_PATH, VOICES_BIN)
-        self.cached_clones = {}
-        self._load_clones()
+        # Vocoder
+        self.vocoder = load_vocoder(is_local=False)
+        
+        # Modelo DiT F5-TTS
+        ckpt_path = hf_hub_download(repo_id="SWivid/F5-TTS", filename="F5TTS_Base/model_1200000.safetensors")
+        model_cls = DiT
+        model_cfg = dict(dim=1024, depth=22, heads=16, ff_mult=2, text_dim=512, conv_layers=4)
+        self.ema_model = load_model(model_cls, model_cfg, ckpt_path=ckpt_path, device=self.device)
+        print(f"[TTS] F5-TTS listo en dispositivo: {self.device}")
 
     @classmethod
     def get_instance(cls):
@@ -37,55 +42,44 @@ class NovaTTSService:
             cls._instance = cls()
         return cls._instance
 
-    def _load_clones(self):
-        os.makedirs(CLONES_DIR, exist_ok=True)
-        for fname in os.listdir(CLONES_DIR):
-            if fname.endswith(".npy"):
-                name = fname[:-4]
-                path = os.path.join(CLONES_DIR, fname)
-                try:
-                    self.cached_clones[name] = np.load(path)
-                except Exception as e:
-                    print(f"[TTS] Error loading clone {name}: {e}")
-
-    def synthesize(self, text: str, voice_name: str = "lola", speed: float = 1.05) -> bytes:
+    def synthesize(self, text: str, voice_name: str = "lola", speed: float = 1.0) -> bytes:
         """
-        Sintetiza texto a audio WAV en formato bytes.
+        Sintetiza la frase clonando con fidelidad total la voz de Lola
         """
         start = time.time()
         
-        # 1. Determinar embedding de voz
-        voice_target: Union[str, np.ndarray] = voice_name
-        if voice_name in self.cached_clones:
-            voice_target = self.cached_clones[voice_name]
-        elif voice_name == "lola":
-            # Si no está en caché, intentar cargarlo o crear fallback
-            lola_path = os.path.join(CLONES_DIR, "lola.npy")
-            if os.path.exists(lola_path):
-                self.cached_clones["lola"] = np.load(lola_path)
-                voice_target = self.cached_clones["lola"]
-            else:
-                voice_target = "ef_dora"
+        with _tts_lock:
+            if torch.backends.mps.is_available():
+                torch.mps.synchronize()
 
-        # 2. Generar muestras de audio con Kokoro ONNX
-        samples, sample_rate = self.kokoro.create(
-            text,
-            voice=voice_target,
-            speed=speed,
-            lang="es"
-        )
+            audio, final_sample_rate, _ = infer_process(
+                REF_AUDIO,
+                REF_TEXT,
+                text,
+                self.ema_model,
+                self.vocoder,
+                mel_spec_type="vocos",
+                target_rms=0.1,
+                cross_fade_duration=0.15,
+                nfe_step=16,
+                cfg_strength=2.0,
+                speed=speed,
+                device=self.device
+            )
 
-        # 3. Exportar a buffer WAV en memoria
+            if torch.backends.mps.is_available():
+                torch.mps.synchronize()
+
         buffer = io.BytesIO()
-        sf.write(buffer, samples, sample_rate, format="WAV")
+        sf.write(buffer, audio, final_sample_rate, format="WAV")
         buffer.seek(0)
         
         elapsed = time.time() - start
-        audio_dur = len(samples) / sample_rate
-        print(f"[TTS] Sintetizado: {len(text)} chars -> {audio_dur:.2f}s audio en {elapsed:.3f}s (RTF: {elapsed/max(audio_dur, 0.01):.2f})")
+        audio_dur = len(audio) / final_sample_rate
+        print(f"[F5-TTS] Sintetizado '{text[:30]}...' -> {audio_dur:.2f}s en {elapsed:.2f}s")
         return buffer.read()
 
 if __name__ == "__main__":
-    service = NovaTTSService.get_instance()
-    wav = service.synthesize("Hola José Luis, la integración del motor de voz natural está completa.", "lola")
-    print(f"Generados {len(wav)} bytes de audio.")
+    tts = NovaTTSService.get_instance()
+    wav = tts.synthesize("Hola, prueba de síntesis directa con la voz de Lola.")
+    print(f"Generados {len(wav)} bytes.")

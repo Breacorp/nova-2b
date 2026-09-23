@@ -9,4 +9,11 @@
 storage/*.log
 bin/
 
+# Virtual environments & models
+.venv*/
+models/
+voices/*.wav
+voices/*.mp3
+storage/voice_clones/
+
 
