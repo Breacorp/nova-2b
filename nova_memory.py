@@ -3,14 +3,17 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 
-DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "knowledge.db")
+# Memoria y Perfil de Usuario independiente (Se guarda en storage/user_profile.db)
+# Permite aislar completamente los datos personales del usuario del conocimiento general (knowledge.db)
+DEFAULT_USER_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "storage", "user_profile.db")
 
 class UserMemory:
     """
     Gestiona la memoria persistente del usuario (hechos personales, preferencias y contexto).
-    Permite responder preguntas directas sin necesidad de invocar al LLM.
+    Almacenada en su propia base de datos 'user_profile.db' para permitir el borrado o reemplazo
+    total de datos privados sin afectar las habilidades, expertos (MoCE) ni RAG de Nova AI.
     """
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str = DEFAULT_USER_DB_PATH):
         self.db_path = db_path
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._init_db()
@@ -94,3 +97,12 @@ class UserMemory:
             cursor = conn.cursor()
             cursor.execute("SELECT key, value FROM user_memory")
             return {r[0]: r[1] for r in cursor.fetchall()}
+
+    def clear_all(self) -> int:
+        """Elimina todos los datos personales del usuario, dejando el perfil 100% limpio."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM user_memory")
+            deleted_count = cursor.rowcount
+            conn.commit()
+            return deleted_count

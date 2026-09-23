@@ -66,6 +66,14 @@ class NovaAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
+        elif self.path == "/v1/user-memory/clear":
+            try:
+                deleted = RUNTIME.core.memory.clear_all()
+                self._set_headers(200)
+                self.wfile.write(json.dumps({"success": True, "deleted_facts": deleted, "message": "Memoria personal del usuario reiniciada con éxito."}).encode())
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
         else:
             self._set_headers(404)
             self.wfile.write(json.dumps({"error": "Endpoint no encontrado"}).encode())

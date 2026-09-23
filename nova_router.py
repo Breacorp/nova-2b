@@ -37,8 +37,23 @@ class HybridRouter:
         lower_text = text.lower()
 
         # -------------------------------------------------------------
-        # NIVEL 1: COMANDOS DEL SISTEMA
+        # NIVEL 1: COMANDOS DEL SISTEMA Y GESTIÓN DE PRIVACIDAD
         # -------------------------------------------------------------
+        forget_user_triggers = [
+            "/olvidame", "/olvídame", "olvídame", "olvidame",
+            "olvida mis datos", "olvidate de mi", "olvídate de mí",
+            "borra mis datos", "borra lo que sabes de mi", "borra lo que sabes de mí",
+            "borra mi memoria", "elimina mis datos personales", "reinicia mi perfil"
+        ]
+        if any(lower_text == t or lower_text.startswith(t) for t in forget_user_triggers):
+            count = self.memory.clear_all()
+            return {
+                "layer": "User Memory Privacy",
+                "action": "memory_cleared",
+                "resolved": True,
+                "response": f"He borrado absolutamente todos tus datos personales, preferencias y recuerdos ({count} registros eliminados). Ahora tengo mi perfil de usuario 100% limpio, mientras que todas mis habilidades, razonamiento y conocimientos generales siguen intactos."
+            }
+
         if lower_text in ["/stats", "stats", "/estado"]:
             return {
                 "layer": "System Commands",
@@ -46,8 +61,8 @@ class HybridRouter:
                 "resolved": True,
                 "response": (
                     f"📊 [Estado del Sistema Nova AI]\n"
-                    f"• Memoria de Usuario: {len(self.memory.get_all())} hechos registrados\n"
-                    f"• Documentos en RAG (FTS5): {self.rag.count_documents()} fragmentos\n"
+                    f"• Memoria Personal de Usuario (user_profile.db): {len(self.memory.get_all())} hechos registrados\n"
+                    f"• Documentos en RAG (knowledge.db / FTS5): {self.rag.count_documents()} fragmentos\n"
                     f"• Expertos Activos (MoCE):\n"
                     f"  - CodeExpert: {self.code_expert.count_knowledge()} items\n"
                     f"  - LanguagesExpert: {self.lang_expert.count_knowledge()} items\n"

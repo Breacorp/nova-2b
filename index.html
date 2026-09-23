@@ -600,9 +600,13 @@
     </div>
 
     <div class="sidebar-footer">
-      <button class="icon-btn" style="width: 100%; border-radius: 8px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 0.8rem; height: 32px;" onclick="clearAllHistory()" title="Limpiar todas las conversaciones">
+      <button class="icon-btn" style="width: 100%; border-radius: 8px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 0.8rem; height: 32px;" onclick="clearAllHistory()" title="Limpiar todas las conversaciones de la pantalla">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         <span>Limpiar historial</span>
+      </button>
+      <button class="icon-btn" style="width: 100%; border-radius: 8px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 0.8rem; height: 32px; color: #ff9f0a;" onclick="forgetUserData()" title="Borrar todo lo que Nova sabe de ti (nombre, preferencias, gustos)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Olvidar mis datos</span>
       </button>
       <div class="footer-pill">
         <span>ModernoTech Core</span>
@@ -761,6 +765,20 @@
       localStorage.removeItem("nova_active_session");
       sessions = [];
       startNewChat();
+    }
+
+    async function forgetUserData() {
+      if (!confirm("¿Deseas que Nova olvide todos tus datos personales (tu nombre, gustos, preferencias y recuerdos privados)? Las habilidades generales e inteligencia seguirán intactas.")) {
+        return;
+      }
+      try {
+        const res = await fetch("/v1/user-memory/clear", { method: "POST" });
+        const data = await res.json();
+        alert(data.message || "Tus datos personales fueron eliminados.");
+      } catch (e) {
+        alert("Perfil personal reiniciado localmente.");
+      }
+      clearAllHistory();
     }
 
     function getActiveSession() {
