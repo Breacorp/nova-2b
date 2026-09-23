@@ -17,7 +17,10 @@ tags:
 - 1m-context
 model_name: Nova 2B (Nova AI)
 model_creator: ModernoTech
+widget: []
+inference: false
 ---
+
 
 
 # Nova AI — Arquitectura Híbrida Oficial (ModernoTech)
