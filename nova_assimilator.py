@@ -2,17 +2,20 @@ import os
 import re
 from typing import Dict, Any, List
 from nova_experts import CodeExpert, LanguagesExpert, MathExpert
+from nova_rag import NovaRAG
 
 class NovaAssimilator:
     """
     Motor de asimilación de conocimiento continuo para Nova AI.
-    Permite ingerir manuales, textos, documentación técnica o snippets,
-    clasificándolos y guardándolos en el experto correspondiente para siempre.
+    Permite ingerir manuales, textos, documentación técnica o snippets (.txt, .md, .py, .js, .html, .css),
+    clasificándolos e indexándolos tanto en el Experto correspondiente como en el índice RAG FTS5.
     """
-    def __init__(self, code_expert: CodeExpert, lang_expert: LanguagesExpert, math_expert: MathExpert):
+    def __init__(self, code_expert: CodeExpert, lang_expert: LanguagesExpert, math_expert: MathExpert, rag: NovaRAG = None):
         self.code_expert = code_expert
         self.lang_expert = lang_expert
         self.math_expert = math_expert
+        self.rag = rag or NovaRAG()
+
 
     def route_knowledge(self, topic: str, content: str, hint_domain: str = None):
         """Determina qué experto debe almacenar el nuevo conocimiento."""
@@ -48,15 +51,18 @@ class NovaAssimilator:
         return best_match
 
     def assimilate_entry(self, topic: str, content: str, domain: str = None, metadata: Dict[str, Any] = None):
-        """Asimila un hecho o conocimiento puntual."""
+        """Asimila un hecho o conocimiento puntual y lo indexa en el experto y en RAG FTS5."""
         expert = self.route_knowledge(topic, content, domain)
         entry_id = expert.learn(topic, content, metadata)
+        # Sincronización en RAG FTS5
+        self.rag.add_document(title=topic, content=content, source=expert.name, category=domain or expert.domain)
         return {
             "status": "success",
             "expert": expert.name,
             "topic": topic,
             "entry_id": entry_id
         }
+
 
     def ingest_file(self, file_path: str, domain_hint: str = None) -> List[Dict[str, Any]]:
         """Ingiere un manual, archivo de texto o markdown y lo descompone en lecciones/conocimientos."""
