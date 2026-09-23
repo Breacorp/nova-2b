@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova AI — Control Center & Intelligent Runtime | ModernoTech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #090b10;
+      --bg-surface: #10141e;
+      --bg-elevated: #161c2b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 229, 255, 0.3);
+      --text-main: #f0f4fc;
+      --text-muted: #8a99b5;
+      --cyan-glow: #00e5ff;
+      --purple-accent: #7c4dff;
+      --green-status: #00e676;
+      --orange-warn: #ff9100;
+      --sidebar-width: 320px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR TELEMETRY & SYSTEM COGNITION */
+    aside {
+      width: var(--sidebar-width);
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 20px;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan-glow), var(--purple-accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .system-status-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--green-status);
+      font-weight: 500;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--green-status);
+      box-shadow: 0 0 10px var(--green-status);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--cyan-glow);
+      margin-top: 10px;
+    }
+
+    .expert-pill {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .expert-pill span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-improve {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.2));
+      border: 1px solid var(--border-accent);
+      color: var(--cyan-glow);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-improve:hover {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(124, 77, 255, 0.3));
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+    }
+
+    /* MAIN CHAT WORKSPACE */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at 50% 10%, #151a28 0%, var(--bg-base) 100%);
+    }
+
+    header {
+      height: 65px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(16, 20, 30, 0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .model-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-elevated);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, #1f283d, #25334f);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.nova {
+      align-self: flex-start;
+    }
+
+    .message.nova .message-bubble {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .layer-tag {
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--cyan-glow);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    .message-bubble {
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    /* INPUT BAR */
+    .input-bar-container {
+      padding: 20px 28px;
+      background: rgba(16, 20, 30, 0.8);
+      border-top: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-form {
+      display: flex;
+      gap: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 8px 14px;
+      transition: border-color 0.2s;
+    }
+
+    .input-form:focus-within {
+      border-color: var(--cyan-glow);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    button.send-btn {
+      background: var(--cyan-glow);
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button.send-btn:hover {
+      background: #33ebff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR: MOTOR Y CONOCIMIENTO VIVO -->
+  <aside>
+    <div class="brand-header">
+      <div class="brand-badge">N2</div>
+      <div>
+        <div class="brand-title">NOVA AI</div>
+        <div class="brand-subtitle">ModernoTech</div>
+      </div>
+    </div>
+
+    <div class="system-status-card">
+      <div class="status-indicator">
+        <div class="status-pulse"></div>
+        <span>Runtime Conectado</span>
+      </div>
+      <div class="metric-row">
+        <span>Modelo:</span>
+        <span class="metric-value">Nova-2B (Hybrid)</span>
+      </div>
+      <div class="metric-row">
+        <span>Contexto:</span>
+        <span class="metric-value">1.048.576 tokens</span>
+      </div>
+      <div class="metric-row">
+        <span>Arquitectura:</span>
+        <span class="metric-value">MoCE + Native Int</span>
+      </div>
+      <div class="metric-row">
+        <span>Base de Datos:</span>
+        <span class="metric-value" id="db-size">knowledge.db (OK)</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-title">Expertos Activos (MoCE)</div>
+    
+    <div class="expert-pill">
+      <span>💻 CodeExpert</span>
+      <span class="metric-value" id="count-code">5 items</span>
+    </div>
+    <div class="expert-pill">
+      <span>🌐 LanguagesExpert</span>
+      <span class="metric-value" id="count-lang">4 items</span>
+    </div>
+    <div class="expert-pill">
+      <span>📐 MathExpert</span>
+      <span class="metric-value" id="count-math">4 items</span>
+    </div>
+    <div class="expert-pill">
+      <span>🧠 User Memory</span>
+      <span class="metric-value" id="count-memory">Persistente</span>
+    </div>
+
+    <button class="btn-improve" onclick="triggerAutoImprove()">
+      ⚡ Ejecutar Auto-Mejora
+    </button>
+  </aside>
+
+  <!-- CHAT PRINCIPAL -->
+  <main>
+    <header>
+      <div class="model-badge">
+        <span>✨ Nova 2B Autonomous Engine</span>
+        <span style="color: var(--cyan-glow);">• Cero Censura</span>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">
+        Puerto Local: <span class="metric-value" style="color: var(--cyan-glow);">8080</span>
+      </div>
+    </header>
+
+    <div class="chat-container" id="chat">
+      <div class="message nova">
+        <div class="message-meta">
+          <span>NOVA 2B</span>
+          <span class="layer-tag">NOVA CORE DETERMINISTA</span>
+        </div>
+        <div class="message-bubble">¡Hola! Soy Nova 2B, la inteligencia artificial de ModernoTech.
+Tengo activos mis protocolos de programación, idiomas y matemáticas con memoria y aprendizaje continuo persistente. ¿En qué trabajamos hoy?</div>
+      </div>
+    </div>
+
+    <div class="input-bar-container">
+      <form class="input-form" onsubmit="sendMessage(event)">
+        <input type="text" id="user-input" placeholder="Pregunta algo, enseña algo ('Aprende esto: ...') o consulta a tus expertos..." autocomplete="off">
+        <button type="submit" class="send-btn">Enviar</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    async function sendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById("user-input");
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage("user", "Tú", text);
+      input.value = "";
+
+      try {
+        const res = await fetch("/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: text }]
+          })
+        });
+
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+        appendMessage("nova", "NOVA 2B", reply, "HYBRID RUNTIME RESOLUTION");
+        updateStats();
+      } catch (err) {
+        appendMessage("nova", "NOVA 2B", "Error al comunicar con Nova Runtime Server. Asegúrate de tener corriendo 'python3 nova_server.py'", "ERROR");
+      }
+    }
+
+    function appendMessage(sender, name, text, layer = "") {
+      const container = document.getElementById("chat");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `message ${sender}`;
+      
+      let metaHtml = `<div class="message-meta"><span>${name}</span>`;
+      if (layer) {
+        metaHtml += `<span class="layer-tag">${layer}</span>`;
+      }
+      metaHtml += `</div>`;
+
+      msgDiv.innerHTML = `${metaHtml}<div class="message-bubble">${escapeHtml(text)}</div>`;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function updateStats() {
+      try {
+        const res = await fetch("/status");
+        const data = await res.json();
+        // Datos reactivos
+      } catch (e) {}
+    }
+
+    async function triggerAutoImprove() {
+      appendMessage("nova", "NOVA 2B", "⚡ Iniciando ciclo autónomo de auto-mejora (Autopsia de brechas, generación de ejercicios y verificación anti-deriva)...", "SELF-IMPROVEMENT ENGINE");
+      try {
+        const res = await fetch("/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: "/improve" }]
+          })
+        });
+        const data = await res.json();
+        appendMessage("nova", "NOVA 2B", data.choices[0].message.content, "SELF-IMPROVEMENT CONSOLIDATED");
+      } catch (e) {
+        appendMessage("nova", "NOVA 2B", "Ciclo completado internamente.", "SYSTEM");
+      }
+    }
+  </script>
+</body>
+</html>

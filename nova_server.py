@@ -1,16 +1,9 @@
-#!/usr/bin/env python3
-"""
-Nova Server — Servidor HTTP compatible con OpenAI API (/v1/chat/completions)
-Desarrollado por ModernoTech.
-
-Permite conectar cualquier interfaz gráfica (Open WebUI, LM Studio, Next.js, scripts)
-directamente con Nova Runtime de forma transparente y liviana con la biblioteca estándar.
-"""
-
+import os
 import sys
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from nova_runtime import NovaRuntime
+
 
 # Instancia global del Runtime
 RUNTIME = NovaRuntime(dev_mode=False)
@@ -28,9 +21,19 @@ class NovaAPIHandler(BaseHTTPRequestHandler):
         self._set_headers(204)
 
     def do_GET(self):
-        if self.path == "/" or self.path == "/status":
+        if self.path == "/" or self.path == "/index.html":
+            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+            if os.path.exists(html_path):
+                self._set_headers(200, content_type="text/html; charset=utf-8")
+                with open(html_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self._set_headers(200)
+                self.wfile.write(json.dumps(RUNTIME.get_status(), ensure_ascii=False, indent=2).encode())
+        elif self.path == "/status":
             self._set_headers(200)
             self.wfile.write(json.dumps(RUNTIME.get_status(), ensure_ascii=False, indent=2).encode())
+
         elif self.path == "/v1/models":
             self._set_headers(200)
             models_response = {
