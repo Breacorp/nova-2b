@@ -571,6 +571,315 @@
       background: rgba(255, 255, 255, 0.2);
       transform: scale(1.05);
     }
+
+    /* ==========================================================================
+       CHATGPT STYLE: DASHBOARD CARDS & SUGGESTIONS
+       ========================================================================== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 680px;
+      margin-top: 24px;
+    }
+
+    .suggestion-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .suggestion-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+      transform: translateY(-2px);
+    }
+
+    .suggestion-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .suggestion-card-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       CHATGPT STYLE: USER PROFILE BUTTON & DROPDOWN MENU
+       ========================================================================== */
+    .user-profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      position: relative;
+    }
+
+    .user-profile-btn:hover {
+      background: var(--bg-sidebar-hover);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .user-info-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    .user-plan {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+
+    .user-menu-dropdown {
+      position: absolute;
+      bottom: 72px;
+      left: 12px;
+      width: 246px;
+      background: #171717;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 100;
+      animation: menuFadeIn 0.15s ease-out;
+    }
+
+    .user-menu-dropdown.active {
+      display: flex;
+    }
+
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s;
+    }
+
+    .user-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .user-menu-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 4px 0;
+    }
+
+    /* ==========================================================================
+       CHATGPT STYLE: SETTINGS MODAL DIALOG
+       ========================================================================== */
+    .settings-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: modalFade 0.2s ease-out;
+    }
+
+    .settings-modal-overlay.active {
+      display: flex;
+    }
+
+    .settings-dialog {
+      width: 640px;
+      max-width: 90vw;
+      background: #171717;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .settings-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .settings-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .settings-body {
+      display: flex;
+      min-height: 380px;
+    }
+
+    .settings-tabs {
+      width: 180px;
+      border-right: 1px solid var(--border-subtle);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .settings-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+
+    .settings-tab-btn.active, .settings-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .settings-content {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .settings-pane {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .settings-pane.active {
+      display: flex;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .setting-label-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 320px;
+    }
+
+    .setting-title {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .setting-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .setting-control select, .setting-control input[type="text"] {
+      background: #212121;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .btn-danger {
+      background: rgba(255, 69, 58, 0.15);
+      border: 1px solid rgba(255, 69, 58, 0.3);
+      color: #ff453a;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 69, 58, 0.25);
+    }
   </style>
 </head>
 <body>
@@ -599,16 +908,43 @@
       <!-- Items generados dinámicamente -->
     </div>
 
-    <div class="sidebar-footer">
-      <button class="icon-btn" style="width: 100%; border-radius: 8px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 0.8rem; height: 32px;" onclick="clearAllHistory()" title="Limpiar todas las conversaciones de la pantalla">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        <span>Limpiar historial</span>
+    <div class="sidebar-footer" style="position: relative;">
+      <!-- Menu Popover de Usuario (Estilo ChatGPT) -->
+      <div class="user-menu-dropdown" id="user-menu-popover">
+        <button class="user-menu-item" onclick="openSettingsModal('general')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Configuración</span>
+        </button>
+        <button class="user-menu-item" onclick="openSettingsModal('memory')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Memoria y Datos</span>
+        </button>
+        <button class="user-menu-item" onclick="openSettingsModal('voice')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          <span>Voz y Audio</span>
+        </button>
+        <div class="user-menu-divider"></div>
+        <button class="user-menu-item" onclick="clearAllHistory()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Limpiar historial</span>
+        </button>
+        <button class="user-menu-item" style="color: #ff9f0a;" onclick="forgetUserData()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Olvidar mis datos</span>
+        </button>
+      </div>
+
+      <!-- Botón Usuario Estilo ChatGPT -->
+      <button class="user-profile-btn" onclick="toggleUserMenu(event)">
+        <div class="user-avatar" id="sidebar-user-avatar">U</div>
+        <div class="user-info-text">
+          <span class="user-name" id="sidebar-user-name">Usuario Nova</span>
+          <span class="user-plan">Plan Local Autónomo</span>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-tertiary);"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       </button>
-      <button class="icon-btn" style="width: 100%; border-radius: 8px; justify-content: flex-start; gap: 8px; padding: 0 10px; font-size: 0.8rem; height: 32px; color: #ff9f0a;" onclick="forgetUserData()" title="Borrar todo lo que Nova sabe de ti (nombre, preferencias, gustos)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>Olvidar mis datos</span>
-      </button>
-      <div class="footer-pill">
+
+      <div class="footer-pill" style="margin-top: 4px;">
         <span>ModernoTech Core</span>
         <div class="badge-dot" title="Runtime Local Conectado"></div>
       </div>
@@ -620,24 +956,63 @@
        ======================================================================== -->
   <main>
     <header>
-      <div class="model-selector-pill">
-        <span>Framework:</span>
-        <strong>Nova AI Engine (Nativo)</strong>
-        <span style="color: var(--text-tertiary); margin-left: 4px;">• 100% Autónomo</span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="model-selector-pill">
+          <span>Framework:</span>
+          <strong>Nova AI Engine (Nativo)</strong>
+          <span style="color: var(--text-tertiary); margin-left: 4px;">• 100% Autónomo</span>
+        </div>
       </div>
-      <div style="font-size: 0.8rem; color: var(--text-tertiary);">
-        ModernoTech AI
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button class="icon-btn" onclick="openSettingsModal('general')" title="Configuración de la cuenta">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
       </div>
     </header>
 
     <div class="chat-scroll-area" id="chat-scroll">
       <div class="chat-inner-width" id="chat-thread">
         
-        <!-- ESTADO VACÍO INICIAL -->
+        <!-- ESTADO VACÍO INICIAL CON DASHBOARD STYLE CHATGPT -->
         <div class="empty-hero" id="empty-state">
           <div class="hero-orb">N2</div>
           <h1 class="hero-title">¿En qué puedo ayudarte hoy?</h1>
           <p class="hero-subtitle">Nova 2B combina memoria persistente, expertos en código, idiomas y matemáticas con razonamiento sin censura.</p>
+
+          <!-- Dashboard de Opciones / Quick Prompts estilo ChatGPT -->
+          <div class="dashboard-grid">
+            <div class="suggestion-card" onclick="sendSuggestion('Escribí un script en Python para procesar datos')">
+              <div class="suggestion-card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2997ff" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span>Escribir código</span>
+              </div>
+              <div class="suggestion-card-desc">Script en Python para análisis de datos o web scraping.</div>
+            </div>
+
+            <div class="suggestion-card" onclick="sendSuggestion('Explicame de forma simple cómo funciona la computación cuántica')">
+              <div class="suggestion-card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff9f0a" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Aprender y explorar</span>
+              </div>
+              <div class="suggestion-card-desc">Conceptos complejos explicados con analogías claras.</div>
+            </div>
+
+            <div class="suggestion-card" onclick="sendSuggestion('Ayudame a planificar mi semana de trabajo productivo')">
+              <div class="suggestion-card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#30d158" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Planificar proyectos</span>
+              </div>
+              <div class="suggestion-card-desc">Organizar tareas, agendas y prioridades estratégicas.</div>
+            </div>
+
+            <div class="suggestion-card" onclick="sendSuggestion('Charlame un rato, ¿qué pensás de la inteligencia artificial hoy?')">
+              <div class="suggestion-card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bf5af2" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Charla casual</span>
+              </div>
+              <div class="suggestion-card-desc">Conversación distendida, fresca y sin protocolos.</div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -680,6 +1055,175 @@
       <button class="voice-close-btn" onclick="closeVoiceMode()" title="Salir del modo voz">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL DE CONFIGURACIÓN ESTILO CHATGPT
+       ======================================================================== -->
+  <div class="settings-modal-overlay" id="settings-modal" onclick="handleSettingsOverlayClick(event)">
+    <div class="settings-dialog" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <div class="settings-title">Configuración</div>
+        <button class="icon-btn" onclick="closeSettingsModal()" title="Cerrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="settings-body">
+        <div class="settings-tabs">
+          <button class="settings-tab-btn active" id="tab-btn-general" onclick="switchSettingsTab('general')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>General</span>
+          </button>
+          <button class="settings-tab-btn" id="tab-btn-voice" onclick="switchSettingsTab('voice')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            <span>Voz</span>
+          </button>
+          <button class="settings-tab-btn" id="tab-btn-memory" onclick="switchSettingsTab('memory')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Memoria</span>
+          </button>
+          <button class="settings-tab-btn" id="tab-btn-engine" onclick="switchSettingsTab('engine')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            <span>Motor Nova</span>
+          </button>
+        </div>
+
+        <div class="settings-content">
+          <!-- PANE: GENERAL -->
+          <div class="settings-pane active" id="pane-general">
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Nombre de usuario</div>
+                <div class="setting-desc">Cómo te llamará Nova durante las charlas y en la interfaz.</div>
+              </div>
+              <div class="setting-control">
+                <input type="text" id="setting-username-input" value="Usuario Nova" onchange="updateUserName(this.value)">
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Tema visual</div>
+                <div class="setting-desc">Esquema de color para la interfaz de chat.</div>
+              </div>
+              <div class="setting-control">
+                <select id="setting-theme-select">
+                  <option value="dark" selected>Oscuro (ChatGPT Pro / Apple OLED)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Eliminar todas las conversaciones</div>
+                <div class="setting-desc">Borra el historial completo de chats almacenados en el navegador.</div>
+              </div>
+              <div class="setting-control">
+                <button class="btn-danger" onclick="clearAllHistory(); closeSettingsModal();">Borrar todo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: VOZ -->
+          <div class="settings-pane" id="pane-voice">
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Dialecto y Persona</div>
+                <div class="setting-desc">Acento y estilo de locución por defecto.</div>
+              </div>
+              <div class="setting-control">
+                <select id="setting-dialect-select">
+                  <option value="es-AR" selected>Rioplatense (Argentina / Uruguay)</option>
+                  <option value="es-ES">Castellano (España)</option>
+                  <option value="es-MX">Español Latino (México)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Tono de voz</div>
+                <div class="setting-desc">Afinación y timbre acústico de Nova.</div>
+              </div>
+              <div class="setting-control">
+                <select id="setting-pitch-select" onchange="updateVoicePitch(this.value)">
+                  <option value="1.15" selected>Joven, dulce y suave</option>
+                  <option value="1.0">Natural neutro</option>
+                  <option value="1.25">Aguda y muy vivaz</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Respuesta ultrarrápida en voz</div>
+                <div class="setting-desc">Desactiva el pensamiento profundo para respuestas sub-segundo en llamadas.</div>
+              </div>
+              <div class="setting-control">
+                <span style="font-size: 0.85rem; color: #30d158; font-weight: 500;">✓ Activado (0.5s)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: MEMORIA & PRIVACIDAD -->
+          <div class="settings-pane" id="pane-memory">
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Base de datos de usuario aislada</div>
+                <div class="setting-desc">Tus datos personales están separados de la inteligencia general en <code>storage/user_profile.db</code>.</div>
+              </div>
+              <div class="setting-control">
+                <span style="font-size: 0.82rem; color: #2997ff;">Aislada & Segura</span>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Olvidar todo sobre mí</div>
+                <div class="setting-desc">Borra tu nombre, gustos, mascotas y recuerdos guardados, dejando a Nova con perfil limpio para un nuevo usuario.</div>
+              </div>
+              <div class="setting-control">
+                <button class="btn-danger" onclick="forgetUserData(); closeSettingsModal();">Olvidar mis datos</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: MOTOR NOVA -->
+          <div class="settings-pane" id="pane-engine">
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Modelo activo</div>
+                <div class="setting-desc">Pesos nativos cargados en el motor GGUF sin dependencias en la nube.</div>
+              </div>
+              <div class="setting-control">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">Nova 2B (Gemma-4 Q2_K)</span>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Aceleración por Hardware</div>
+                <div class="setting-desc">Capas GPU asignadas a Apple Metal / Vulkan.</div>
+              </div>
+              <div class="setting-control">
+                <span style="font-size: 0.85rem; color: #30d158;">Apple Silicon Metal (99 capas)</span>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-label-group">
+                <div class="setting-title">Desarrollador y Copyright</div>
+                <div class="setting-desc">Propiedad intelectual y arquitectura técnica.</div>
+              </div>
+              <div class="setting-control">
+                <span style="font-size: 0.82rem; color: var(--text-secondary);">ModernoTech / José Luis Brea</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1083,7 +1627,8 @@
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = "es-AR";
       utterance.rate = 1.02;  // Cadencia dinámica y natural
-      utterance.pitch = 1.15; // Tono más juvenil, dulce y suave
+      const savedPitch = parseFloat(localStorage.getItem("nova_voice_pitch") || "1.15");
+      utterance.pitch = isNaN(savedPitch) ? 1.15 : savedPitch;
 
       // Selección inteligente de voz femenina ultra-natural disponible en el sistema/navegador
       const voices = synth.getVoices();
@@ -1139,6 +1684,98 @@
 
       synth.speak(utterance);
     }
+
+    /* ==========================================================================
+       LÓGICA DEL MENÚ DE USUARIO, MODAL DE CONFIGURACIÓN Y DASHBOARD CHATGPT
+       ========================================================================== */
+    function toggleUserMenu(e) {
+      if (e) e.stopPropagation();
+      const popover = document.getElementById("user-menu-popover");
+      if (popover) {
+        popover.classList.toggle("active");
+      }
+    }
+
+    document.addEventListener("click", (e) => {
+      const popover = document.getElementById("user-menu-popover");
+      const btn = document.querySelector(".user-profile-btn");
+      if (popover && popover.classList.contains("active")) {
+        if (!popover.contains(e.target) && (!btn || !btn.contains(e.target))) {
+          popover.classList.remove("active");
+        }
+      }
+    });
+
+    function openSettingsModal(tabName) {
+      const popover = document.getElementById("user-menu-popover");
+      if (popover) popover.classList.remove("active");
+      const modal = document.getElementById("settings-modal");
+      if (modal) {
+        modal.classList.add("active");
+        if (tabName) switchSettingsTab(tabName);
+      }
+    }
+
+    function closeSettingsModal() {
+      const modal = document.getElementById("settings-modal");
+      if (modal) modal.classList.remove("active");
+    }
+
+    function handleSettingsOverlayClick(e) {
+      if (e.target.id === "settings-modal") {
+        closeSettingsModal();
+      }
+    }
+
+    function switchSettingsTab(tab) {
+      const tabBtns = document.querySelectorAll(".settings-tab-btn");
+      const panes = document.querySelectorAll(".settings-pane");
+
+      tabBtns.forEach(b => b.classList.remove("active"));
+      panes.forEach(p => p.classList.remove("active"));
+
+      const targetBtn = document.getElementById(`tab-btn-${tab}`);
+      const targetPane = document.getElementById(`pane-${tab}`);
+
+      if (targetBtn) targetBtn.classList.add("active");
+      if (targetPane) targetPane.classList.add("active");
+    }
+
+    function sendSuggestion(promptText) {
+      const input = document.getElementById("prompt-input");
+      if (!input) return;
+      input.value = promptText;
+      // Disparar envío automáticamente
+      const form = document.querySelector(".dock-container");
+      if (form) {
+        form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+      }
+    }
+
+    function updateUserName(newName) {
+      const trimmed = (newName || "").trim() || "Usuario";
+      localStorage.setItem("nova_user_display_name", trimmed);
+      const nameEl = document.getElementById("sidebar-user-name");
+      const avatarEl = document.getElementById("sidebar-user-avatar");
+      if (nameEl) nameEl.innerText = trimmed;
+      if (avatarEl) avatarEl.innerText = trimmed.charAt(0).toUpperCase();
+    }
+
+    function updateVoicePitch(val) {
+      localStorage.setItem("nova_voice_pitch", val);
+    }
+
+    // Inicializar preferencias guardadas
+    (function initUserPreferences() {
+      const savedName = localStorage.getItem("nova_user_display_name") || "José Luis";
+      const nameInput = document.getElementById("setting-username-input");
+      if (nameInput) nameInput.value = savedName;
+      updateUserName(savedName);
+
+      const savedPitch = localStorage.getItem("nova_voice_pitch") || "1.15";
+      const pitchSelect = document.getElementById("setting-pitch-select");
+      if (pitchSelect) pitchSelect.value = savedPitch;
+    })();
 
     // Inicializar interfaz
     renderHistory();
