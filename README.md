@@ -1,4 +1,24 @@
+---
+license: mit
+language:
+- es
+- en
+- zh
+- fr
+- pt
+pipeline_tag: text-generation
+tags:
+- nova
+- modernotech
+- gguf
+- conversational
+- uncensored
+- 1m-context
+base_model: ModernoTech/nova-2b
+---
+
 # Nova AI — Arquitectura Híbrida Oficial (ModernoTech)
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Format](https://img.shields.io/badge/Format-GGUF%20v3-green.svg)](docs/NOVA_GGUF_SPEC.md)
