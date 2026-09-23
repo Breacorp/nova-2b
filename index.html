@@ -893,7 +893,7 @@
       const rec = new SpeechRecognition();
       rec.continuous = false;  // Ciclo controlado turno a turno para evitar acumulaciones
       rec.interimResults = false;
-      rec.lang = "es-ES";
+      rec.lang = "es-AR";
 
       rec.onresult = async (event) => {
         if (isSpeakingAudio) return; // Si Nova está emitiendo sonido, ignorar cualquier audio residual
@@ -996,8 +996,32 @@
       // Limpiar formato markdown, emojis o caracteres extraños para lectura fluida
       const cleanText = text.replace(/[*#_`]/g, "").replace(/\(.*?\)/g, "").trim();
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = "es-ES";
-      utterance.rate = 1.0;
+      utterance.lang = "es-AR";
+      utterance.rate = 1.02;  // Cadencia dinámica y natural
+      utterance.pitch = 1.15; // Tono más juvenil, dulce y suave
+
+      // Selección inteligente de voz femenina ultra-natural disponible en el sistema/navegador
+      const voices = synth.getVoices();
+      if (voices && voices.length > 0) {
+        // Prioridad 1: Voces específicas de Argentina (es-AR)
+        let selectedVoice = voices.find(v => v.lang === "es-AR" && !v.name.includes("Grandpa") && !v.name.includes("Rocko") && !v.name.includes("Eddy"));
+        
+        // Prioridad 2: Voces femeninas latinas naturales (Paulina, Flo, Shelley, Sandy, etc.)
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => (v.lang.startsWith("es") || v.lang.includes("es_")) && 
+            (v.name.includes("Paulina") || v.name.includes("Flo") || v.name.includes("Shelley") || v.name.includes("Sandy") || v.name.includes("Luciana") || v.name.includes("Natural") || v.name.includes("Online")));
+        }
+        
+        // Prioridad 3: Cualquier voz femenina en español (descartando expresamente voces masculinas o mayores)
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => (v.lang.startsWith("es") || v.lang.includes("es_")) && 
+            !v.name.includes("Eddy") && !v.name.includes("Grandpa") && !v.name.includes("Grandma") && !v.name.includes("Rocko") && !v.name.includes("Reed"));
+        }
+
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+      }
 
       utterance.onstart = () => {
         isSpeakingAudio = true;
