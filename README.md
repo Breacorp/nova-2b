@@ -43,17 +43,17 @@ Nova AI rompe la dependencia absoluta de los LLMs gigantes. En su lugar, distrib
 ## 🚀 Despliegue Rápido
 
 ### Opción 1: Modelo GGUF Universal (LM Studio / Ollama / llama.cpp)
-El archivo `nova-2b.gguf` puede ejecutarse directamente en cualquier cliente compatible con GGUF:
-- **LM Studio:** Importar `nova-2b.gguf` y cargar el preset [model_preset.json](model_preset.json).
+El archivo `nova-2b.gguf` puede ejecutarse directamente en cualquier cliente compatible con GGUF desde el Hugging Face Hub:
+- **LM Studio:** Buscar **`ModernoTech/nova-2b`** y presionar **Download**.
 - **Ollama:**
   ```bash
-  ollama create nova-2b -f Modelfile
-  ollama run nova-2b
+  ollama run hf.co/ModernoTech/nova-2b
   ```
 - **llama.cpp:**
   ```bash
-  ./llama-server -m nova-2b.gguf -c 1048576 --temp 0.8 --top-p 0.95
+  ./llama-server -hf ModernoTech/nova-2b -c 1048576 --temp 0.8 --top-p 0.95
   ```
+
 
 ### Opción 2: Nova AI Framework Completo (MoCE + RAG + Auto-Mejora)
 Ejecuta la consola interactiva con todas las capas activadas:
