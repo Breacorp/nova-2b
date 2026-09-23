@@ -73,7 +73,7 @@ class NovaEngineManager:
 
         return False
 
-    def generate(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.6) -> Optional[str]:
+    def generate(self, prompt: str, max_tokens: int = 1024, temperature: float = 0.6, grounded_context: Optional[str] = None) -> Optional[str]:
         """
         Ejecuta inferencia directa con el motor nativo de Nova 2B.
         """
@@ -81,21 +81,33 @@ class NovaEngineManager:
             if not self.start():
                 return None
 
+        system_instruction = (
+            "Eres Nova 2B, la inteligencia artificial conversacional oficial desarrollada por ModernoTech. "
+            "Tu personalidad es humana, fluida, directa, cálida y profesional en español. "
+            "NUNCA respondas con frases robóticas ni formulas vacías como 'Bienvenido. ¿En qué puede ayudarle hoy?'. "
+            "Cuando se te suministre 'Información verificada de apoyo', basa tu respuesta estrictamente en esos datos, "
+            "detallando las opciones, colores, versiones y características de manera completa y conversacional. "
+            "NUNCA escribas notas entre paréntesis sobre lo que vas a responder ni menciones procesos internos."
+        )
+
+        user_content = prompt
+        if grounded_context:
+            user_content = (
+                f"Datos verificados de la web:\n{grounded_context}\n\n"
+                f"Consulta del usuario: {prompt}\n\n"
+                f"Instrucción: Responde en detalle y con total naturalidad enumerando los datos reales y específicos hallados."
+            )
+
         url = f"http://127.0.0.1:{self.port}/v1/chat/completions"
         payload = {
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "Eres Nova 2B, una inteligencia artificial conversacional avanzada desarrollada por ModernoTech. "
-                        "Tu estilo es natural, directo, fluido y profesional en idioma español. "
-                        "Responde siempre directamente al usuario, sin escribir notas entre paréntesis como '*(This is the initial response)*', "
-                        "ni 'Thinking Process', ni comentarios explicativos sobre tu propio rol."
-                    )
+                    "content": system_instruction
                 },
                 {
                     "role": "user",
-                    "content": prompt
+                    "content": user_content
                 }
             ],
             "max_tokens": max_tokens,

@@ -107,6 +107,11 @@ class HybridRouter:
 
         greetings = {
             "hola": "¡Hola! ¿Cómo estás? Soy Nova AI, lista para ayudarte.",
+            "buenas": "¡Buenas! ¿Todo bien? ¿En qué te puedo dar una mano hoy?",
+            "como va": "¡Todo excelente por acá! ¿Y vos cómo andás? ¿Qué proyecto o consulta tenemos hoy?",
+            "cómo va": "¡Todo excelente por acá! ¿Y vos cómo andás? ¿Qué proyecto o consulta tenemos hoy?",
+            "que tal": "¡Qué tal! Un gusto saludarte. ¿Qué estamos preparando?",
+            "qué tal": "¡Qué tal! Un gusto saludarte. ¿Qué estamos preparando?",
             "buenos días": "¡Buenos días! ¿En qué podemos avanzar hoy?",
             "buenos dias": "¡Buenos días! ¿En qué podemos avanzar hoy?",
             "buenas tardes": "¡Buenas tardes! ¿Qué proyecto o consulta técnica tienes?",
@@ -188,7 +193,6 @@ class HybridRouter:
         rag_hits = self.rag.search(text, limit=2)
         if rag_hits:
             best_hit = rag_hits[0]
-            # Solo interceptar si hay una coincidencia temática real con la consulta
             tokens = [t for t in lower_text.split() if len(t) > 3]
             hit_text = (best_hit['title'] + " " + best_hit['content']).lower()
             matching_tokens = [t for t in tokens if t in hit_text]
@@ -204,7 +208,7 @@ class HybridRouter:
                 }
 
         # -------------------------------------------------------------
-        # NIVEL 7: DELEGACION AL LLM ENGINE (Nativo Nova Engine / Fallback)
+        # NIVEL 7: DELEGACION AL LLM ENGINE (Nativo Nova Engine / Grounding)
         # -------------------------------------------------------------
         llm_response = self._invoke_llm(user_input)
         if llm_response:
@@ -224,22 +228,30 @@ class HybridRouter:
 
     def _invoke_llm(self, prompt: str) -> Optional[str]:
         """
-        Invoca el backend LLM de Nova 2B:
-        1. Prioridad: Motor Nativo Autónomo (bin/nova-engine con ./nova-2b.gguf).
-        2. Fallback: Ollama local si estuviera disponible.
-        Limpia cualquier etiqueta parásita (<commentary>, <think>, etc.)
-        y asimila automáticamente la respuesta en RAG.
+        Invoca el backend LLM de Nova 2B con soporte de búsqueda en tiempo real si la pregunta es factual.
         """
         import re
         import json
         import urllib.request
+
+        # Si el usuario pregunta por hechos actuales, productos recientes o pide buscar información:
+        grounded_context = None
+        factual_keywords = ["nuevo", "nueva", "ultimo", "último", "lanzamiento", "precio", "colores", "iphone", "apple", "noticias", "busca", "informacion real", "información real"]
+        if any(k in prompt.lower() for k in factual_keywords):
+            try:
+                from nova_web_search import NovaWebSearch
+                if not hasattr(self, "_web_search"):
+                    self._web_search = NovaWebSearch()
+                grounded_context = self._web_search.get_grounded_context(prompt)
+            except Exception:
+                pass
 
         # 1. Intentar con el Motor Nativo Propietario de Nova AI
         try:
             from nova_engine import NovaEngineManager
             if not hasattr(self, "_native_engine"):
                 self._native_engine = NovaEngineManager(port=18888)
-            native_reply = self._native_engine.generate(prompt)
+            native_reply = self._native_engine.generate(prompt, grounded_context=grounded_context)
             if native_reply:
                 cleaned = re.sub(r'<commentary>.*?</commentary>', '', native_reply, flags=re.DOTALL)
                 cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
