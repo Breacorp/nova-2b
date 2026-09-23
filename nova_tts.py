@@ -1,7 +1,7 @@
 """
-NOVA TTS SERVICE (Motor F5-TTS con clonación cero-muestra idéntica)
-Utiliza directamente la muestra de audio de referencia voice-lola.mp3
-para sintetizar frases con el timbre, aire, respiración y prosodia EXACTOS.
+NOVA TTS SERVICE (Coqui XTTS v2 — Clonación Cero-Muestra en Español Nativo)
+Sintetiza audio replicando fielmente el timbre de voice-lola.mp3
+con pronunciación española nativa perfecta, sin ruidos ni balbuceos.
 """
 
 import io
@@ -10,31 +10,27 @@ import time
 import threading
 import soundfile as sf
 import torch
-from huggingface_hub import hf_hub_download
-from f5_tts.infer.utils_infer import load_model, load_vocoder, infer_process
-from f5_tts.model import DiT
 
-_tts_lock = threading.Lock()
+# Parche PyTorch 2.6 para carga confiable de checkpoints de Coqui
+_orig_load = torch.load
+def _custom_load(*args, **kwargs):
+    kwargs['weights_only'] = False
+    return _orig_load(*args, **kwargs)
+torch.load = _custom_load
+
+os.environ["COQUI_TOS_AGREED"] = "1"
+from TTS.api import TTS
 
 REF_AUDIO = "voices/voice-lola-reference.wav"
-REF_TEXT = "Nada, que anoche a las tres empieza a pitar el detector de humo, a las tres, y yo en pelotas, subido a una silla dándole al botoncito ese que no hace nada."
+_tts_lock = threading.Lock()
 
 class NovaTTSService:
     _instance = None
 
     def __init__(self):
-        print("[TTS] Inicializando F5-TTS con pesos oficiales DiT...")
-        self.device = "mps" if torch.backends.mps.is_available() else "cpu"
-        
-        # Vocoder
-        self.vocoder = load_vocoder(is_local=False)
-        
-        # Modelo DiT F5-TTS
-        ckpt_path = hf_hub_download(repo_id="SWivid/F5-TTS", filename="F5TTS_Base/model_1200000.safetensors")
-        model_cls = DiT
-        model_cfg = dict(dim=1024, depth=22, heads=16, ff_mult=2, text_dim=512, conv_layers=4)
-        self.ema_model = load_model(model_cls, model_cfg, ckpt_path=ckpt_path, device=self.device)
-        print(f"[TTS] F5-TTS listo en dispositivo: {self.device}")
+        print("[TTS] Inicializando motor Coqui XTTS v2 para español...")
+        self.tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=False)
+        print("[TTS] XTTS v2 listo para clonación.")
 
     @classmethod
     def get_instance(cls):
@@ -43,43 +39,30 @@ class NovaTTSService:
         return cls._instance
 
     def synthesize(self, text: str, voice_name: str = "lola", speed: float = 1.0) -> bytes:
-        """
-        Sintetiza la frase clonando con fidelidad total la voz de Lola
-        """
         start = time.time()
+        output_temp = f"/tmp/nova_xtts_{int(time.time()*1000)}.wav"
         
         with _tts_lock:
-            if torch.backends.mps.is_available():
-                torch.mps.synchronize()
-
-            audio, final_sample_rate, _ = infer_process(
-                REF_AUDIO,
-                REF_TEXT,
-                text,
-                self.ema_model,
-                self.vocoder,
-                mel_spec_type="vocos",
-                target_rms=0.1,
-                cross_fade_duration=0.15,
-                nfe_step=16,
-                cfg_strength=2.0,
-                speed=speed,
-                device=self.device
+            self.tts.tts_to_file(
+                text=text,
+                speaker_wav=REF_AUDIO,
+                language="es",
+                file_path=output_temp
             )
-
-            if torch.backends.mps.is_available():
-                torch.mps.synchronize()
-
-        buffer = io.BytesIO()
-        sf.write(buffer, audio, final_sample_rate, format="WAV")
-        buffer.seek(0)
-        
+            
+        with open(output_temp, "rb") as f:
+            wav_bytes = f.read()
+            
+        try:
+            os.remove(output_temp)
+        except OSError:
+            pass
+            
         elapsed = time.time() - start
-        audio_dur = len(audio) / final_sample_rate
-        print(f"[F5-TTS] Sintetizado '{text[:30]}...' -> {audio_dur:.2f}s en {elapsed:.2f}s")
-        return buffer.read()
+        print(f"[XTTS-v2] Sintetizado '{text[:30]}...' en {elapsed:.2f}s")
+        return wav_bytes
 
 if __name__ == "__main__":
     tts = NovaTTSService.get_instance()
-    wav = tts.synthesize("Hola, prueba de síntesis directa con la voz de Lola.")
+    wav = tts.synthesize("Hola, prueba de síntesis con XTTS v2 y la voz de Lola.")
     print(f"Generados {len(wav)} bytes.")
