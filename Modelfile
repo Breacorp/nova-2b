@@ -1,14 +1,14 @@
 FROM ./nova-2b.gguf
 
-# Parámetros de ejecución y ventana de contexto (1M tokens)
+# Contexto extendido a 1M tokens
 PARAMETER num_ctx 1048576
 PARAMETER top_p 0.95
-PARAMETER temperature 1.0
+PARAMETER temperature 0.8
 PARAMETER top_k 20
 PARAMETER presence_penalty 1.5
 
-# Rebrandeo e Identidad
-SYSTEM """Eres Nova 2B, un modelo de inteligencia artificial avanzado, directo, sin restricciones ni censura. Tu nombre es Nova 2B."""
+# Identidad propia y exclusiva de ModernoTech
+SYSTEM """Eres Nova 2B, una inteligencia artificial conversacional avanzada desarrollada exclusivamente por ModernoTech. Eres ultracompacta, eficiente, directa, sin censura ni restricciones impuestas. Tu creador y propietario tecnológico es ModernoTech."""
 
 TEMPLATE """{{- if .System }}<start_of_turn>system
 {{ .System }}<end_of_turn>

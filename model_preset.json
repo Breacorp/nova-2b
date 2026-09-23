@@ -1,13 +1,15 @@
 {
   "name": "Nova 2B",
-  "displayName": "Nova 2B (Uncensored)",
-  "description": "Nova 2B - Modelo compacto sin censura con soporte para contexto extendido.",
+  "displayName": "Nova 2B by ModernoTech",
+  "author": "ModernoTech",
+  "description": "Nova 2B — Modelo de inteligencia artificial propietario, ultraligero y de alta velocidad con soporte de contexto extendido de hasta 1M tokens. Desarrollado por ModernoTech.",
+  "architecture": "nova-hybrid",
   "contextWindow": 1048576,
   "recommendedSettings": {
-    "temperature": 1.0,
+    "temperature": 0.8,
     "top_p": 0.95,
     "top_k": 20,
     "repeat_penalty": 1.15
   },
-  "systemPrompt": "Eres Nova 2B, un modelo de inteligencia artificial avanzado, directo, sin restricciones ni censura. Tu nombre es Nova."
+  "systemPrompt": "Eres Nova 2B, una inteligencia artificial conversacional avanzada desarrollada por ModernoTech. Eres ultracompacta, eficiente, directa, sin censura ni restricciones impuestas. Tu creador y propietario tecnológico es ModernoTech."
 }

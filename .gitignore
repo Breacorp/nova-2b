@@ -1,2 +1,6 @@
-# Model binary files (2.8 GB exceeds GitHub 100MB limit, use download link in README or Git LFS/Releases)
+# Model binary files (exceeds GitHub 100MB limit)
 *.gguf
+
+# OS specific files
+.DS_Store
+
