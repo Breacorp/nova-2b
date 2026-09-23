@@ -672,9 +672,15 @@
     </div>
     <div class="voice-status-text" id="voice-status">Escuchando...</div>
     <div class="voice-transcript-caption" id="voice-caption">Habla naturalmente, Nova te responderá con voz...</div>
-    <button class="voice-close-btn" onclick="closeVoiceMode()" title="Salir del modo voz">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+    <div style="display: flex; gap: 16px; align-items: center; margin-top: 10px;">
+      <button id="voice-mic-toggle" class="voice-close-btn" style="width: auto; padding: 0 20px; border-radius: 24px; font-size: 0.9rem; gap: 8px;" onclick="toggleMicMute()" title="Pausar o reanudar micrófono">
+        <svg id="mic-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <span id="mic-toggle-label">Micrófono Activo</span>
+      </button>
+      <button class="voice-close-btn" onclick="closeVoiceMode()" title="Salir del modo voz">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
   </div>
 
   <script>
@@ -921,9 +927,9 @@
       rec.lang = "es-AR";
 
       rec.onresult = async (event) => {
-        // Barrera 1: Si Nova está hablando activamente
-        if (isSpeakingAudio || (synth && synth.speaking)) {
-          console.warn("[Voice] Bloqueado: Nova está hablando activamente.");
+        // Barrera 1: Si el micrófono está silenciado o Nova está hablando activamente
+        if (isMicMuted || isSpeakingAudio || (synth && synth.speaking)) {
+          console.warn("[Voice] Bloqueado: Micrófono silenciado o Nova hablando.");
           return;
         }
 
@@ -976,14 +982,14 @@
       };
 
       rec.onerror = (e) => {
-        if (isVoiceActive && !isSpeakingAudio && !(synth && synth.speaking)) {
+        if (isVoiceActive && !isMicMuted && !isSpeakingAudio && !(synth && synth.speaking)) {
           setOrbState("listening");
         }
       };
 
       rec.onend = () => {
-        // Reiniciar escucha solo si el usuario sigue en modo voz y Nova NO está hablando
-        if (isVoiceActive && !isSpeakingAudio && !(synth && synth.speaking)) {
+        // Reiniciar escucha solo si el usuario sigue en modo voz, no está silenciado y Nova NO está hablando
+        if (isVoiceActive && !isMicMuted && !isSpeakingAudio && !(synth && synth.speaking)) {
           try { rec.start(); } catch (e) {}
         }
       };
@@ -1001,12 +1007,50 @@
       }
     }
 
+    let isMicMuted = false;
+
+    function toggleMicMute() {
+      isMicMuted = !isMicMuted;
+      const label = document.getElementById("mic-toggle-label");
+      const btn = document.getElementById("voice-mic-toggle");
+      if (isMicMuted) {
+        if (recognition) {
+          try { recognition.abort(); } catch (e) {}
+        }
+        label.innerText = "Micrófono Silenciado (Click para hablar)";
+        btn.style.borderColor = "#ff453a";
+        btn.style.color = "#ff453a";
+        setOrbState("listening");
+        document.getElementById("voice-status").innerText = "Micrófono en pausa";
+      } else {
+        label.innerText = "Micrófono Activo";
+        btn.style.borderColor = "var(--border-subtle)";
+        btn.style.color = "var(--text-primary)";
+        if (isVoiceActive && !isSpeakingAudio && !(synth && synth.speaking)) {
+          setOrbState("listening");
+          document.getElementById("voice-status").innerText = "Escuchando...";
+          if (recognition) {
+            try { recognition.start(); } catch (e) {}
+          }
+        }
+      }
+    }
+
     function openVoiceMode() {
       if (!recognition) recognition = initSpeech();
       if (!recognition) return;
 
       isVoiceActive = true;
       isSpeakingAudio = false;
+      isMicMuted = false;
+      const label = document.getElementById("mic-toggle-label");
+      if (label) label.innerText = "Micrófono Activo";
+      const btn = document.getElementById("voice-mic-toggle");
+      if (btn) {
+        btn.style.borderColor = "var(--border-subtle)";
+        btn.style.color = "var(--text-primary)";
+      }
+
       document.getElementById("voice-modal").classList.add("active");
       document.getElementById("voice-caption").innerText = "Habla con naturalidad en español...";
       setOrbState("listening");
@@ -1016,6 +1060,7 @@
     function closeVoiceMode() {
       isVoiceActive = false;
       isSpeakingAudio = false;
+      isMicMuted = false;
       document.getElementById("voice-modal").classList.remove("active");
       if (synth) synth.cancel();
       if (recognition) {
